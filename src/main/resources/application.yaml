@@ -1,3 +1,9 @@
 spring:
   application:
     name: hellouniverse
+
+# NASA API configuration
+nasa:
+  api:
+    base-url: https://api.nasa.gov
+    api-key: ${NASA_API_KEY}
