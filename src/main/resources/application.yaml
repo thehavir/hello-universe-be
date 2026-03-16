@@ -10,3 +10,10 @@ nasa:
   api:
     base-url: https://api.nasa.gov
     api-key: ${NASA_API_KEY}
+
+# Scheduler configuration
+scheduler:
+  fetch-apod:
+    # every hour
+    cron: "0 0 * * * *"
+
