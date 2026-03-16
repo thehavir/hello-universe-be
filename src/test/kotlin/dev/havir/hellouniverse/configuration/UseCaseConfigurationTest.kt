@@ -27,4 +27,11 @@ class UseCaseConfigurationTest {
 
         assertNotNull(result)
     }
+
+    @Test
+    fun `on getApodsByDateRangeUseCase returns GetApodsByDateRangeUseCase`() {
+        val result = sut.getApodsByDateRangeUseCase()
+
+        assertNotNull(result)
+    }
 }
