@@ -14,7 +14,7 @@ class NasaApiConfiguration(private val nasaApiProperties: NasaApiProperties) {
     }
 
     @Bean
-    fun restClient(nasaApiKeyInterceptor: NasaApiKeyInterceptor): RestClient {
+    fun nasaApiRestClient(nasaApiKeyInterceptor: NasaApiKeyInterceptor): RestClient {
         return RestClient.builder().baseUrl(nasaApiProperties.baseUrl)
             .requestInterceptor(nasaApiKeyInterceptor).build()
     }

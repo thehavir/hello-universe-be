@@ -10,10 +10,11 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 
 @Component
-class NasaApodGateway(private val restClient: RestClient) : ApodGateway {
+class NasaApodGateway(private val nasaApiRestClient: RestClient) : ApodGateway {
     override fun getApod(): Apod? {
-        return restClient.get().uri { it.path("/planetary/apod").build() }
-            .retrieve().body<NasaApodDto>()?.toDomain()
+        return nasaApiRestClient.get()
+            .uri { it.path("/planetary/apod").build() }.retrieve()
+            .body<NasaApodDto>()?.toDomain()
     }
 
     private fun NasaApodDto.toDomain(): Apod {
