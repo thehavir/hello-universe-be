@@ -2,9 +2,6 @@ spring:
   application:
     name: hellouniverse
 
-  profiles:
-    active: dev
-
 # NASA API configuration
 nasa:
   api:
