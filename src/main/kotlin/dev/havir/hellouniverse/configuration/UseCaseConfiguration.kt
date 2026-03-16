@@ -1,6 +1,7 @@
 package dev.havir.hellouniverse.configuration
 
 import dev.havir.hellouniverse.application.usecase.FetchTodayApodUseCase
+import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase
 import dev.havir.hellouniverse.domain.ApodGateway
 import dev.havir.hellouniverse.domain.ApodRepository
 import org.springframework.context.annotation.Bean
@@ -14,4 +15,8 @@ class UseCaseConfiguration(
     @Bean
     fun fetchTodayApodUseCase() =
         FetchTodayApodUseCase(apodGateway, apodRepository)
+
+    @Bean
+    fun getApodsByDateRangeUseCase() =
+        GetApodsByDateRangeUseCase(apodRepository)
 }
