@@ -10,27 +10,27 @@ import kotlin.test.Test
 class UseCaseConfigurationTest {
     lateinit var apodGateway: ApodGateway
     lateinit var apodRepository: ApodRepository
-    lateinit var sut: UseCaseConfiguration
+    lateinit var tested: UseCaseConfiguration
 
     @BeforeEach
     fun setUp() {
         apodGateway = mockk()
         apodRepository = mockk()
-        sut = UseCaseConfiguration(
+        tested = UseCaseConfiguration(
             apodGateway = apodGateway, apodRepository = apodRepository
         )
     }
 
     @Test
     fun `on fetchTodayApodUseCase returns FetchTodayApodUseCase`() {
-        val result = sut.fetchTodayApodUseCase()
+        val result = tested.fetchTodayApodUseCase()
 
         assertNotNull(result)
     }
 
     @Test
     fun `on getApodsByDateRangeUseCase returns GetApodsByDateRangeUseCase`() {
-        val result = sut.getApodsByDateRangeUseCase()
+        val result = tested.getApodsByDateRangeUseCase()
 
         assertNotNull(result)
     }

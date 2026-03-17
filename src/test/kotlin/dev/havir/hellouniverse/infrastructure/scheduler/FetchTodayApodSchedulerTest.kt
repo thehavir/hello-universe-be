@@ -10,19 +10,19 @@ import kotlin.test.assertFailsWith
 
 class FetchTodayApodSchedulerTest {
     lateinit var fetchTodayApodUseCase: FetchTodayApodUseCase
-    lateinit var sut: FetchTodayApodScheduler
+    lateinit var tested: FetchTodayApodScheduler
 
     @BeforeEach
     fun setUp() {
         fetchTodayApodUseCase = mockk()
-        sut = FetchTodayApodScheduler(fetchTodayApodUseCase)
+        tested = FetchTodayApodScheduler(fetchTodayApodUseCase)
     }
 
     @Test
     fun `on scheduleFetchApod calls execute on FetchTodayApodUseCase`() {
         every { fetchTodayApodUseCase.execute() } answers { }
 
-        sut.fetchApod()
+        tested.fetchApod()
 
         verify(exactly = 1) { fetchTodayApodUseCase.execute() }
     }
@@ -31,6 +31,6 @@ class FetchTodayApodSchedulerTest {
     fun `on scheduleFetchApod throws when FetchTodayApodUseCase throws`() {
         every { fetchTodayApodUseCase.execute() } throws Exception("error55")
 
-        assertFailsWith<Exception> { sut.fetchApod() }
+        assertFailsWith<Exception> { tested.fetchApod() }
     }
 }

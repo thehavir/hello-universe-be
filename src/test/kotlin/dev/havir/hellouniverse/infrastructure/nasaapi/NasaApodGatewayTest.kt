@@ -23,7 +23,7 @@ import org.springframework.http.MediaType as HttpMediaType
 class NasaApodGatewayTest {
     lateinit var restClientBuilder: RestClient.Builder
     lateinit var mockServer: MockRestServiceServer
-    lateinit var sut: ApodGateway
+    lateinit var tested: ApodGateway
 
     @BeforeEach
     fun setUp() {
@@ -35,9 +35,9 @@ class NasaApodGatewayTest {
     fun `on getApod creates a HTTP GET method`() {
         mockServer.expect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.ACCEPTED))
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        sut.getApod()
+        tested.getApod()
 
         mockServer.verify()
     }
@@ -46,9 +46,9 @@ class NasaApodGatewayTest {
     fun `on getApod creates uri with correct path`() {
         mockServer.expect(requestTo("/planetary/apod"))
             .andRespond(withStatus(HttpStatus.ACCEPTED))
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        sut.getApod()
+        tested.getApod()
 
         mockServer.verify()
     }
@@ -58,9 +58,9 @@ class NasaApodGatewayTest {
         mockServer.expect(requestTo("/planetary/apod")).andRespond(
             withSuccess("", HttpMediaType.APPLICATION_JSON)
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        val result = sut.getApod()
+        val result = tested.getApod()
 
         assertNull(result)
     }
@@ -84,9 +84,9 @@ class NasaApodGatewayTest {
                 json, HttpMediaType.APPLICATION_JSON
             )
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        val result = sut.getApod()
+        val result = tested.getApod()
 
         assertEquals(
             result, TestModels.apod(
@@ -118,9 +118,9 @@ class NasaApodGatewayTest {
                 json, HttpMediaType.APPLICATION_JSON
             )
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        val result = sut.getApod()
+        val result = tested.getApod()
 
         assertEquals(
             result, TestModels.apod(
@@ -149,9 +149,9 @@ class NasaApodGatewayTest {
                 json, HttpMediaType.APPLICATION_JSON
             )
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        val result = sut.getApod()
+        val result = tested.getApod()
 
         assertEquals(
             result, TestModels.apod(
@@ -180,9 +180,9 @@ class NasaApodGatewayTest {
                 json, HttpMediaType.APPLICATION_JSON
             )
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        val result = sut.getApod()
+        val result = tested.getApod()
 
         assertEquals(
             result, TestModels.apod(
@@ -209,9 +209,9 @@ class NasaApodGatewayTest {
         mockServer.expect(requestTo("/planetary/apod")).andRespond(
             withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON)
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        assertFailsWith<RestClientException> { sut.getApod() }
+        assertFailsWith<RestClientException> { tested.getApod() }
     }
 
     @Test
@@ -219,8 +219,8 @@ class NasaApodGatewayTest {
         mockServer.expect(requestTo("/planetary/apod")).andRespond(
             withStatus(HttpStatus.GATEWAY_TIMEOUT)
         )
-        sut = NasaApodGateway(restClientBuilder.build())
+        tested = NasaApodGateway(restClientBuilder.build())
 
-        assertFailsWith<RestClientException> { sut.getApod() }
+        assertFailsWith<RestClientException> { tested.getApod() }
     }
 }
