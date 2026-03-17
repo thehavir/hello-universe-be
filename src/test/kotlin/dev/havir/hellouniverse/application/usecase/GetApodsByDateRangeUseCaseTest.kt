@@ -14,12 +14,12 @@ import kotlin.test.assertFailsWith
 
 class GetApodsByDateRangeUseCaseTest {
     lateinit var apodRepository: ApodRepository
-    lateinit var sut: GetApodsByDateRangeUseCase
+    lateinit var tested: GetApodsByDateRangeUseCase
 
     @BeforeEach
     fun setUp() {
         apodRepository = mockk()
-        sut = GetApodsByDateRangeUseCase(apodRepository)
+        tested = GetApodsByDateRangeUseCase(apodRepository)
     }
 
     @Test
@@ -33,7 +33,7 @@ class GetApodsByDateRangeUseCaseTest {
             )
         } returns expected
 
-        sut.execute(startDate, endDate)
+        tested.execute(startDate, endDate)
 
         verify { apodRepository.findByDateRange(startDate, endDate) }
     }
@@ -49,7 +49,7 @@ class GetApodsByDateRangeUseCaseTest {
             )
         } throws RuntimeException(error)
 
-        assertFailsWith<RuntimeException> { sut.execute(startDate, endDate) }
+        assertFailsWith<RuntimeException> { tested.execute(startDate, endDate) }
     }
 
     @Test
@@ -63,7 +63,7 @@ class GetApodsByDateRangeUseCaseTest {
         }
 
         assertFailsWith<StartDateAfterEndDateException> {
-            sut.execute(
+            tested.execute(
                 startDate = startDate, endDate = endDate
             )
         }
@@ -83,7 +83,7 @@ class GetApodsByDateRangeUseCaseTest {
             )
         } returns expected
 
-        val result = sut.execute(startDate, endDate)
+        val result = tested.execute(startDate, endDate)
 
         assertEquals(result, expected)
     }
@@ -98,7 +98,7 @@ class GetApodsByDateRangeUseCaseTest {
             )
         } returns expected
 
-        val result = sut.execute(startDate = date, endDate = date)
+        val result = tested.execute(startDate = date, endDate = date)
 
         assertEquals(result, expected)
     }

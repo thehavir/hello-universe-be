@@ -15,13 +15,13 @@ import kotlin.test.Test
 class FetchTodayApodUseCaseTest {
     lateinit var apodGateway: ApodGateway
     lateinit var apodRepository: ApodRepository
-    lateinit var sut: FetchTodayApodUseCase
+    lateinit var tested: FetchTodayApodUseCase
 
     @BeforeEach
     fun setUp() {
         apodGateway = mockk()
         apodRepository = mockk()
-        sut = FetchTodayApodUseCase(
+        tested = FetchTodayApodUseCase(
             apodGateway = apodGateway, apodRepository = apodRepository
         )
     }
@@ -38,7 +38,7 @@ class FetchTodayApodUseCaseTest {
         every { LocalDate.now() } returns now
         every { apodRepository.existsByDate(now) } returns true
 
-        sut.execute()
+        tested.execute()
 
         verify(exactly = 1) { apodRepository.existsByDate(now) }
     }
@@ -50,7 +50,7 @@ class FetchTodayApodUseCaseTest {
         every { LocalDate.now() } returns now
         every { apodRepository.existsByDate(now) } returns true
 
-        sut.execute()
+        tested.execute()
 
         verify { apodGateway wasNot called }
         verify(exactly = 0) { apodRepository.save(any()) }
@@ -66,7 +66,7 @@ class FetchTodayApodUseCaseTest {
         every { apodRepository.save(apod) } returns apod
         every { apodGateway.getApod() } returns apod
 
-        sut.execute()
+        tested.execute()
 
         verify { apodGateway.getApod() }
     }
@@ -91,7 +91,7 @@ class FetchTodayApodUseCaseTest {
         every { apodGateway.getApod() } returns apod
         every { apodRepository.save(apod) } returns apod
 
-        sut.execute()
+        tested.execute()
 
         verify { apodRepository.save(apod) }
     }
@@ -104,7 +104,7 @@ class FetchTodayApodUseCaseTest {
         every { apodRepository.existsByDate(now) } returns false
         every { apodGateway.getApod() } returns null
 
-        assertThrows<ApodNotFoundException> { sut.execute() }
+        assertThrows<ApodNotFoundException> { tested.execute() }
         verify(exactly = 0) { apodRepository.save(any()) }
     }
 
@@ -116,7 +116,7 @@ class FetchTodayApodUseCaseTest {
         every { apodRepository.existsByDate(now) } returns false
         every { apodGateway.getApod() } throws NullPointerException()
 
-        assertThrows<NullPointerException> { sut.execute() }
+        assertThrows<NullPointerException> { tested.execute() }
         verify(exactly = 0) { apodRepository.save(any()) }
     }
 }

@@ -1,4 +1,5 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
+
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -25,7 +26,7 @@ class NasaApiKeyInterceptorTest {
     fun `on intercept executes ClientHttpRequestExecution with the appended api_key query param to the URL`() {
         val expectedResult = "api-key-xyz-213!"
         val uri = URI.create("https://abc.com")
-        val sut = NasaApiKeyInterceptor(expectedResult)
+        val tested = NasaApiKeyInterceptor(expectedResult)
         val slot = slot<HttpRequest>()
         every {
             execution.execute(
@@ -34,7 +35,7 @@ class NasaApiKeyInterceptorTest {
         } returns MockClientHttpResponse()
         every { httpRequest.uri } returns uri
 
-        sut.intercept(
+        tested.intercept(
             request = httpRequest, body = byteArrayOf(), execution = execution
         )
 
@@ -45,7 +46,7 @@ class NasaApiKeyInterceptorTest {
     fun `intercept does not change URL itself`() {
         val expectedResult = URI.create("https://localhost")
         val slot = slot<HttpRequest>()
-        val sut = NasaApiKeyInterceptor("key")
+        val tested = NasaApiKeyInterceptor("key")
         every {
             execution.execute(
                 capture(slot), any()
@@ -53,7 +54,7 @@ class NasaApiKeyInterceptorTest {
         } returns MockClientHttpResponse()
         every { httpRequest.uri } returns expectedResult
 
-        sut.intercept(
+        tested.intercept(
             request = httpRequest, body = byteArrayOf(), execution = execution
         )
 

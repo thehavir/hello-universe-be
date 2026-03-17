@@ -20,12 +20,12 @@ import kotlin.test.assertTrue
 
 class JpaApodRepositoryTest {
     lateinit var apodJpaRepository: ApodJpaRepository
-    lateinit var sut: ApodRepository
+    lateinit var tested: ApodRepository
 
     @BeforeEach
     fun setUp() {
         apodJpaRepository = mockk()
-        sut = JpaApodRepository(apodJpaRepository)
+        tested = JpaApodRepository(apodJpaRepository)
     }
 
     @Test
@@ -34,7 +34,7 @@ class JpaApodRepositoryTest {
         val apodEntity = TestModels.apodEntity()
         every { apodJpaRepository.save(any()) } returns apodEntity
 
-        sut.save(apodDomain)
+        tested.save(apodDomain)
 
         verify { apodJpaRepository.save(any()) }
     }
@@ -65,7 +65,7 @@ class JpaApodRepositoryTest {
         )
         every { apodJpaRepository.save(any()) } returns apodEntity
 
-        val result = sut.save(apodDomain)
+        val result = tested.save(apodDomain)
 
         assertEquals(result, apodDomain)
     }
@@ -78,7 +78,7 @@ class JpaApodRepositoryTest {
             apodEntity
         )
 
-        sut.findByDate(date)
+        tested.findByDate(date)
 
         verify { apodJpaRepository.findById(date) }
     }
@@ -88,7 +88,7 @@ class JpaApodRepositoryTest {
         val date = LocalDate.of(2014, 1, 13)
         every { apodJpaRepository.findById(date) } returns Optional.empty()
 
-        val result = sut.findByDate(date)
+        val result = tested.findByDate(date)
 
         assertNull(result)
     }
@@ -122,7 +122,7 @@ class JpaApodRepositoryTest {
             apodEntity
         )
 
-        val result = sut.findByDate(date)
+        val result = tested.findByDate(date)
 
         assertEquals(result, apodDomain)
     }
@@ -140,7 +140,7 @@ class JpaApodRepositoryTest {
             )
         } returns apodEntities
 
-        sut.findByDateRange(startDate, endDate)
+        tested.findByDateRange(startDate, endDate)
 
         verify { apodJpaRepository.findByDateBetween(startDate, endDate) }
     }
@@ -155,7 +155,7 @@ class JpaApodRepositoryTest {
             )
         } returns emptyList()
 
-        val result = sut.findByDateRange(startDate, endDate)
+        val result = tested.findByDateRange(startDate, endDate)
 
         assertEquals(result, emptyList())
     }
@@ -216,7 +216,7 @@ class JpaApodRepositoryTest {
             )
         } returns apodEntities
 
-        val result = sut.findByDateRange(startDate, endDate)
+        val result = tested.findByDateRange(startDate, endDate)
 
         assertEquals(result, apodDomains)
     }
@@ -226,7 +226,7 @@ class JpaApodRepositoryTest {
         val date = LocalDate.of(2020, 10, 8)
         every { apodJpaRepository.existsById(date) } returns false
 
-        val result = sut.existsByDate(date)
+        val result = tested.existsByDate(date)
 
         assertFalse { result }
     }
@@ -236,7 +236,7 @@ class JpaApodRepositoryTest {
         val date = LocalDate.of(2020, 11, 9)
         every { apodJpaRepository.existsById(date) } returns true
 
-        val result = sut.existsByDate(date)
+        val result = tested.existsByDate(date)
 
         assertTrue { result }
     }

@@ -15,7 +15,7 @@ class ApodJapRepositoryTest {
     lateinit var entityManager: TestEntityManager
 
     @Autowired
-    lateinit var sut: ApodJpaRepository
+    lateinit var tested: ApodJpaRepository
 
     @Test
     fun `on findByDateBetween returns list of ApodEntity between passed date range`() {
@@ -32,7 +32,7 @@ class ApodJapRepositoryTest {
         entityManager.persist(apod3)
         entityManager.flush()
 
-        val result = sut.findByDateBetween(from = startDate, to = endDate)
+        val result = tested.findByDateBetween(from = startDate, to = endDate)
 
         assertEquals(expectedResult, result)
     }
@@ -47,7 +47,7 @@ class ApodJapRepositoryTest {
         entityManager.persist(apod1)
         entityManager.flush()
 
-        val result = sut.findByDateBetween(from = startDate, to = endDate)
+        val result = tested.findByDateBetween(from = startDate, to = endDate)
 
         assertEquals(emptyList(), result)
     }
