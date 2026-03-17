@@ -1,4 +1,4 @@
-package dev.havir.hellouniverse.persistence
+package dev.havir.hellouniverse.infrastructure.persistence
 
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.domain.ApodRepository
