@@ -20,16 +20,16 @@ class ApodEntity(
     @Enumerated(EnumType.STRING)
     var mediaType: MediaTypeEntity,
 
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT", nullable = true)
     var url: String?,
 
-    @Column(name = "hd_url", nullable = true)
+    @Column(name = "hd_url", columnDefinition = "TEXT", nullable = true)
     var hdUrl: String?,
 
-    @Column(name = "thumbnail_url", nullable = true)
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT", nullable = true)
     var thumbnailUrl: String?,
 
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT", nullable = true)
     var copyright: String?,
 
     @Column(name = "service_version", nullable = false)
