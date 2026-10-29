@@ -22,7 +22,7 @@ class JpaApodRepository(
     override fun findByDateRange(
         startDate: LocalDate, endDate: LocalDate
     ): List<Apod> =
-        apodJpaRepository.findByDateBetween(from = startDate, to = endDate)
+        apodJpaRepository.findByDateBetweenOrderByDateAsc(from = startDate, to = endDate)
             .map { it.toDomain() }
 
     override fun existsByDate(date: LocalDate): Boolean =

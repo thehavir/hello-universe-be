@@ -3,8 +3,6 @@ package dev.havir.hellouniverse.infrastructure.persistence
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.domain.ApodRepository
 import dev.havir.hellouniverse.domain.model.MediaType
-import dev.havir.hellouniverse.infrastructure.persistence.ApodJpaRepository
-import dev.havir.hellouniverse.infrastructure.persistence.JpaApodRepository
 import dev.havir.hellouniverse.infrastructure.persistence.entity.MediaTypeEntity
 import io.mockk.every
 import io.mockk.mockk
@@ -135,14 +133,14 @@ class JpaApodRepositoryTest {
             TestModels.apodEntity(), TestModels.apodEntity()
         )
         every {
-            apodJpaRepository.findByDateBetween(
+            apodJpaRepository.findByDateBetweenOrderByDateAsc(
                 startDate, endDate
             )
         } returns apodEntities
 
         tested.findByDateRange(startDate, endDate)
 
-        verify { apodJpaRepository.findByDateBetween(startDate, endDate) }
+        verify { apodJpaRepository.findByDateBetweenOrderByDateAsc(startDate, endDate) }
     }
 
     @Test
@@ -150,7 +148,7 @@ class JpaApodRepositoryTest {
         val startDate = LocalDate.of(2014, 1, 18)
         val endDate = LocalDate.of(2014, 1, 28)
         every {
-            apodJpaRepository.findByDateBetween(
+            apodJpaRepository.findByDateBetweenOrderByDateAsc(
                 startDate, endDate
             )
         } returns emptyList()
@@ -211,7 +209,7 @@ class JpaApodRepositoryTest {
             )
         )
         every {
-            apodJpaRepository.findByDateBetween(
+            apodJpaRepository.findByDateBetweenOrderByDateAsc(
                 startDate, endDate
             )
         } returns apodEntities
