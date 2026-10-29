@@ -1,7 +1,7 @@
 package dev.havir.hellouniverse.presentation.response
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class ErrorResponse(
     val status: Int,
@@ -9,5 +9,5 @@ data class ErrorResponse(
     val message: String,
 
     @JsonProperty("timestamp")
-    val timestamp: LocalDateTime = LocalDateTime.now(),
+    val timestamp: Instant = Instant.now(),
 )

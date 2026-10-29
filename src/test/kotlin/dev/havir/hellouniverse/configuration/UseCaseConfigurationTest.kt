@@ -5,6 +5,7 @@ import dev.havir.hellouniverse.domain.ApodRepository
 import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertNotNull
+import java.time.Clock
 import kotlin.test.Test
 
 class UseCaseConfigurationTest {
@@ -17,7 +18,9 @@ class UseCaseConfigurationTest {
         apodGateway = mockk()
         apodRepository = mockk()
         tested = UseCaseConfiguration(
-            apodGateway = apodGateway, apodRepository = apodRepository
+            apodGateway = apodGateway,
+            apodRepository = apodRepository,
+            clock = Clock.systemUTC()
         )
     }
 

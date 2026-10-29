@@ -6,13 +6,19 @@ import dev.havir.hellouniverse.domain.ApodRepository
 import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
 import dev.havir.hellouniverse.domain.model.MediaType
 import io.mockk.*
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import kotlin.test.Test
 
 class FetchTodayApodUseCaseTest {
+    val today = LocalDate.of(2000, 1, 1)
+    val clock = Clock.fixed(
+        Instant.parse("2000-01-01T12:00:00Z"), ZoneId.of("America/New_York")
+    )
     lateinit var apodGateway: ApodGateway
     lateinit var apodRepository: ApodRepository
     lateinit var tested: FetchTodayApodUseCase
@@ -22,33 +28,39 @@ class FetchTodayApodUseCaseTest {
         apodGateway = mockk()
         apodRepository = mockk()
         tested = FetchTodayApodUseCase(
-            apodGateway = apodGateway, apodRepository = apodRepository
+            apodGateway = apodGateway,
+            apodRepository = apodRepository,
+            clock = clock
         )
     }
 
-    @AfterEach
-    fun tearDown() {
-        unmockkStatic(LocalDate::class)
-    }
-
     @Test
-    fun `on execute calls existsByDate today Apod`() {
-        val now = LocalDate.of(2000, 1, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns true
+    fun `on execute calls existsByDate with today from clock`() {
+        every { apodRepository.existsByDate(today) } returns true
 
         tested.execute()
 
-        verify(exactly = 1) { apodRepository.existsByDate(now) }
+        verify(exactly = 1) { apodRepository.existsByDate(today) }
     }
 
     @Test
-    fun `on execute does not call getApod on NasaApiClient when existsByDate on ApodRepository returns true for LocalDate now`() {
-        val now = LocalDate.of(2000, 1, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns true
+    fun `on execute uses the clock zone date, not the UTC date`() {
+        // 03:00 UTC on Jan 2 is still 22:00 on Jan 1 in New York.
+        val nightClock = Clock.fixed(
+            Instant.parse("2000-01-02T03:00:00Z"),
+            ZoneId.of("America/New_York")
+        )
+        tested = FetchTodayApodUseCase(apodGateway, apodRepository, nightClock)
+        every { apodRepository.existsByDate(any()) } returns true
+
+        tested.execute()
+
+        verify(exactly = 1) { apodRepository.existsByDate(LocalDate.of(2000, 1, 1)) }
+    }
+
+    @Test
+    fun `on execute does not call getApod on ApodGateway when existsByDate on ApodRepository returns true for today`() {
+        every { apodRepository.existsByDate(today) } returns true
 
         tested.execute()
 
@@ -57,12 +69,9 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute calls getApod on the NasaApiClient when existsByDate  on ApodRepository returns false for LocalDate now`() {
-        val now = LocalDate.of(2000, 1, 1)
-        val apod = TestModels.apod()
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns false
+    fun `on execute calls getApod on ApodGateway when existsByDate on ApodRepository returns false for today`() {
+        val apod = TestModels.apod(date = today)
+        every { apodRepository.existsByDate(today) } returns false
         every { apodRepository.save(apod) } returns apod
         every { apodGateway.getApod() } returns apod
 
@@ -72,9 +81,9 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute saves Apod into the ApodRepository when NasaApiClient returns ApodDto`() {
+    fun `on execute saves Apod into the ApodRepository when ApodGateway returns Apod for today`() {
         val apod = TestModels.apod(
-            LocalDate.of(2000, 1, 1),
+            today,
             "title-a",
             "explanation-b",
             MediaType.VIDEO,
@@ -84,10 +93,7 @@ class FetchTodayApodUseCaseTest {
             "public",
             "xyz"
         )
-        val now = LocalDate.of(2000, 1, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns false
+        every { apodRepository.existsByDate(today) } returns false
         every { apodGateway.getApod() } returns apod
         every { apodRepository.save(apod) } returns apod
 
@@ -97,11 +103,19 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute throw ApodNotFoundException when nasaApiClient returns null`() {
-        val now = LocalDate.of(2000, 1, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns false
+    fun `on execute does not save when ApodGateway returns Apod for another date`() {
+        val yesterdayApod = TestModels.apod(date = today.minusDays(1))
+        every { apodRepository.existsByDate(today) } returns false
+        every { apodGateway.getApod() } returns yesterdayApod
+
+        tested.execute()
+
+        verify(exactly = 0) { apodRepository.save(any()) }
+    }
+
+    @Test
+    fun `on execute throw ApodNotFoundException when ApodGateway returns null`() {
+        every { apodRepository.existsByDate(today) } returns false
         every { apodGateway.getApod() } returns null
 
         assertThrows<ApodNotFoundException> { tested.execute() }
@@ -109,11 +123,8 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute re-throw when nasaApiClient throws`() {
-        val now = LocalDate.of(2000, 1, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns now
-        every { apodRepository.existsByDate(now) } returns false
+    fun `on execute re-throw when ApodGateway throws`() {
+        every { apodRepository.existsByDate(today) } returns false
         every { apodGateway.getApod() } throws NullPointerException()
 
         assertThrows<NullPointerException> { tested.execute() }

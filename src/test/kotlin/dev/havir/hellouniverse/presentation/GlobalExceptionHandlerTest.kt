@@ -8,7 +8,7 @@ import io.mockk.unmockkStatic
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.http.HttpStatus
-import java.time.LocalDateTime
+import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -22,14 +22,14 @@ class GlobalExceptionHandlerTest {
 
     @AfterEach
     fun tearDown() {
-        unmockkStatic(LocalDateTime::class)
+        unmockkStatic(Instant::class)
     }
 
     @Test
     fun `on handleBadRequestException returns ErrorResponse with BAD_REQUEST status`() {
-        val now = LocalDateTime.of(2000, 12, 6, 12, 33)
-        mockkStatic(LocalDateTime::class)
-        every { LocalDateTime.now() } returns now
+        val now = Instant.parse("2000-12-06T12:33:00Z")
+        mockkStatic(Instant::class)
+        every { Instant.now() } returns now
         val expectedMessage = "test error 1"
 
         val result = tested.handleBadRequestException(
