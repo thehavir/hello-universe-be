@@ -65,10 +65,15 @@ Returns a list of APODs for the given date range from the local cache.
 
 ### Environment variables
 
-| Variable        | Description                                      |
-|-----------------|--------------------------------------------------|
-| `NASA_API_KEY`  | Your NASA API key (get one at api.nasa.gov)      |
-| `DB_PASSWORD`   | PostgreSQL password (prod profile only)          |
+| Variable                 | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `NASA_API_KEY`           | Your NASA API key (get one at api.nasa.gov)                                 |
+| `SPRING_PROFILES_ACTIVE` | `dev` or `prod`. There is no default profile                                |
+| `DB_URL`                 | JDBC URL, e.g. `jdbc:postgresql://127.0.0.1:5432/hellouniverse_db` (prod)   |
+| `DB_USERNAME`            | PostgreSQL user, e.g. `hellouniverse_db_user` (prod)                        |
+| `DB_PASSWORD`            | PostgreSQL password (prod)                                                  |
+
+Without the `dev` profile, the app won't start unless the `DB_*` variables are set.
 
 ### Install local PostgreSQL
 
@@ -128,8 +133,12 @@ DROP DATABASE hellouniverse_db;
 # dev profile uses H2 in-memory database — no external setup needed
 NASA_API_KEY='your_nasa_api_key' ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-# prod profile connects to local PostgreSQL
-DB_PASSWORD='your_db_password' NASA_API_KEY='your_nasa_api_key' ./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+# prod profile connects to PostgreSQL
+DB_URL='jdbc:postgresql://127.0.0.1:5432/hellouniverse_db' \
+DB_USERNAME='hellouniverse_db_user' \
+DB_PASSWORD='your_db_password' \
+NASA_API_KEY='your_nasa_api_key' \
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
 ## Test

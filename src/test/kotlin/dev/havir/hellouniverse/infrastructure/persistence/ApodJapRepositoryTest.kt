@@ -4,11 +4,13 @@ import dev.havir.hellouniverse.TestModels
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @DataJpaTest
+@ActiveProfiles("dev")
 class ApodJapRepositoryTest {
     @Autowired
     lateinit var entityManager: TestEntityManager

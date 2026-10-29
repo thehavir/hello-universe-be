@@ -2,8 +2,13 @@ spring:
   application:
     name: hellouniverse
 
-  profiles:
-    active: dev
+  # Database from env vars. The dev profile overrides this with H2.
+  # Without a profile, startup fails unless these are set, so production
+  # never falls back to an in-memory database.
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
 # NASA API configuration
 nasa:
