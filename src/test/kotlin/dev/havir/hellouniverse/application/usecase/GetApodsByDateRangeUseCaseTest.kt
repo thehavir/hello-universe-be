@@ -1,7 +1,9 @@
 package dev.havir.hellouniverse.application.usecase
 
 import dev.havir.hellouniverse.TestModels
+import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase.Companion.MAX_RANGE_DAYS
 import dev.havir.hellouniverse.domain.ApodRepository
+import dev.havir.hellouniverse.domain.exception.DateRangeTooLargeException
 import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import io.mockk.every
 import io.mockk.mockk
@@ -50,6 +52,35 @@ class GetApodsByDateRangeUseCaseTest {
         } throws RuntimeException(error)
 
         assertFailsWith<RuntimeException> { tested.execute(startDate, endDate) }
+    }
+
+    @Test
+    fun `on execute throws when date range is longer than 100 days`() {
+        val startDate = LocalDate.of(2020, 1, 1)
+        // 2020-04-10, 101 days including both dates
+        val endDate = startDate.plusDays(MAX_RANGE_DAYS.toLong())
+
+        assertFailsWith<DateRangeTooLargeException> {
+            tested.execute(startDate = startDate, endDate = endDate)
+        }
+        verify(exactly = 0) { apodRepository.findByDateRange(any(), any()) }
+    }
+
+    @Test
+    fun `on execute returns list of Apods when date range is exactly 100 days`() {
+        val startDate = LocalDate.of(2020, 1, 1)
+        // 2020-04-09, 100 days including both dates
+        val endDate = startDate.plusDays(MAX_RANGE_DAYS.toLong() - 1)
+        val expected = listOf(TestModels.apod())
+        every {
+            apodRepository.findByDateRange(
+                startDate = startDate, endDate = endDate
+            )
+        } returns expected
+
+        val result = tested.execute(startDate = startDate, endDate = endDate)
+
+        assertEquals(expected, result)
     }
 
     @Test

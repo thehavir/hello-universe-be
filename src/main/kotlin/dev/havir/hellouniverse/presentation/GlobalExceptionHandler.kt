@@ -1,5 +1,6 @@
 package dev.havir.hellouniverse.presentation
 
+import dev.havir.hellouniverse.domain.exception.DateRangeTooLargeException
 import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import dev.havir.hellouniverse.presentation.response.ErrorResponse
 import org.slf4j.LoggerFactory
@@ -22,6 +23,12 @@ class GlobalExceptionHandler {
     fun handleStartAfterEnd(exception: StartDateAfterEndDateException) = error(
         HttpStatus.BAD_REQUEST,
         exception.message ?: "start_date cannot be after end_date",
+    )
+
+    @ExceptionHandler(DateRangeTooLargeException::class)
+    fun handleRangeTooLarge(exception: DateRangeTooLargeException) = error(
+        HttpStatus.BAD_REQUEST,
+        exception.message ?: "date range is too large",
     )
 
     @ExceptionHandler(MissingServletRequestParameterException::class)

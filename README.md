@@ -43,6 +43,8 @@ Returns a list of APODs for the given date range from the local cache.
 | `start_date` | `YYYY-MM-DD` | ✅        | Start of the date range        |
 | `end_date`   | `YYYY-MM-DD` | ✅        | End of the date range          |
 
+Both dates are included. The range can be at most 100 days; a longer range returns `400 Bad Request`.
+
 **Response** `200 OK`
 
 ```json

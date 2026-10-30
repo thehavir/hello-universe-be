@@ -3,6 +3,7 @@ package dev.havir.hellouniverse.presentation.controller
 import com.ninjasquad.springmockk.MockkBean
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase
+import dev.havir.hellouniverse.domain.exception.DateRangeTooLargeException
 import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import dev.havir.hellouniverse.domain.model.MediaType
 import io.mockk.every
@@ -218,6 +219,23 @@ class ApodControllerIntegrationTest {
             param("end_date", "2020-05-05")
         }.andExpect {
             error(HttpStatus.BAD_REQUEST, "start_date cannot be after end_date")
+        }
+    }
+
+    @Test
+    fun `apod endpoint returns bad request (400) when date range is too large`() {
+        every {
+            getApodsByDateRangeUseCase.execute(any(), any())
+        } throws DateRangeTooLargeException("date range cannot be longer than 100 days")
+
+        mockMvc.get("/apods") {
+            param("start_date", "2020-01-01")
+            param("end_date", "2020-04-10")
+        }.andExpect {
+            error(
+                HttpStatus.BAD_REQUEST,
+                "date range cannot be longer than 100 days"
+            )
         }
     }
 

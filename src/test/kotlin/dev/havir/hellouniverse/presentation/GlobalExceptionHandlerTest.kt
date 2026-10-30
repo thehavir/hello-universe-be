@@ -1,5 +1,6 @@
 package dev.havir.hellouniverse.presentation
 
+import dev.havir.hellouniverse.domain.exception.DateRangeTooLargeException
 import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import dev.havir.hellouniverse.presentation.response.ErrorResponse
 import io.mockk.mockk
@@ -37,6 +38,26 @@ class GlobalExceptionHandlerTest {
 
         val result = tested.handleStartAfterEnd(
             StartDateAfterEndDateException(expectedMessage)
+        )
+
+        assertEquals(
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ErrorResponse(
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    error = HttpStatus.BAD_REQUEST.reasonPhrase,
+                    message = expectedMessage,
+                    timestamp = result.body!!.timestamp,
+                )
+            ), result
+        )
+    }
+
+    @Test
+    fun `on handleRangeTooLarge returns ErrorResponse with BAD_REQUEST status`() {
+        val expectedMessage = "test error 2"
+
+        val result = tested.handleRangeTooLarge(
+            DateRangeTooLargeException(expectedMessage)
         )
 
         assertEquals(
