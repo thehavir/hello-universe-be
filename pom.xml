@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.3</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>dev.havir</groupId>
@@ -27,8 +27,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
-		<kotlin.version>2.2.21</kotlin.version>
+		<java.version>25</java.version>
+		<!-- CVE-2026-110879 fix. Remove once Spring Boot manages 3.1.8 or later -->
+		<jackson-bom.version>3.1.8</jackson-bom.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -102,6 +103,13 @@
 			<groupId>com.ninja-squad</groupId>
 			<artifactId>springmockk</artifactId>
 			<version>5.0.1</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Newer MockK than the one springmockk brings in -->
+		<dependency>
+			<groupId>io.mockk</groupId>
+			<artifactId>mockk-jvm</artifactId>
+			<version>1.14.11</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

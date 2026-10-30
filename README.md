@@ -5,8 +5,8 @@ A Spring Boot application functioning as a proxy for the [NASA Astronomy Picture
 ## Technical Overview
 
 **Architecture**: Clean Architecture  
-**Language**: Kotlin 2.2.21 (Java 21)  
-**Framework**: Spring Boot 4.0.3  
+**Language**: Kotlin 2.3.21, managed by Spring Boot (Java 25)  
+**Framework**: Spring Boot 4.1.2  
 **Database**: H2 (dev) / PostgreSQL (prod)  
 **Migrations**: Flyway
 
