@@ -10,6 +10,17 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+# Actuator: only /actuator/health is exposed, without details.
+# It includes a DB check, so it reports DOWN when the database is unreachable.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 # NASA API configuration
 nasa:
   api:

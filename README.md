@@ -61,6 +61,16 @@ Returns a list of APODs for the given date range from the local cache.
 ]
 ```
 
+### `GET /actuator/health`
+
+Health check for deployment and monitoring. Includes a database check.
+
+**Response** `200 OK` when healthy, `503 Service Unavailable` when not (e.g. the database is unreachable)
+
+```json
+{ "status": "UP" }
+```
+
 ## Getting Started
 
 ### Environment variables
