@@ -3,15 +3,19 @@ package dev.havir.hellouniverse.presentation.controller
 import com.ninjasquad.springmockk.MockkBean
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase
+import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import dev.havir.hellouniverse.domain.model.MediaType
 import io.mockk.every
+import org.hamcrest.Matchers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 import java.time.LocalDate
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 import org.springframework.http.MediaType as HttpMediaType
 
 @WebMvcTest(ApodController::class)
@@ -161,19 +165,21 @@ class ApodControllerIntegrationTest {
     fun `apod endpoint returns bad request (400) when start date is missing`() {
         mockMvc.get("/apods") {
             param("end_date", "1999-04-01")
-        }.andExpect { status { isBadRequest() } }
+        }.andExpect { error(HttpStatus.BAD_REQUEST, "start_date is required") }
     }
 
     @Test
     fun `apod endpoint returns bad request (400) when end date is missing`() {
         mockMvc.get("/apods") {
             param("start_date", "1999-05-05")
-        }.andExpect { status { isBadRequest() } }
+        }.andExpect { error(HttpStatus.BAD_REQUEST, "end_date is required") }
     }
 
     @Test
     fun `apod endpoint returns bad request (400) when start date and end date are missing`() {
-        mockMvc.get("/apods").andExpect { status { isBadRequest() } }
+        mockMvc.get("/apods").andExpect {
+            error(HttpStatus.BAD_REQUEST, "start_date is required")
+        }
     }
 
     @Test
@@ -182,7 +188,10 @@ class ApodControllerIntegrationTest {
             param("start_date", "01-01-2020")
             param("end_date", "2020-01-05")
         }.andExpect {
-            status { isBadRequest() }
+            error(
+                HttpStatus.BAD_REQUEST,
+                "start_date must be in YYYY-MM-DD format"
+            )
         }
     }
 
@@ -191,20 +200,78 @@ class ApodControllerIntegrationTest {
         mockMvc.get("/apods") {
             param("start_date", "2020-01-05")
             param("end_date", "01-01-2020")
-        }.andExpect { status { isBadRequest() } }
+        }.andExpect {
+            error(
+                HttpStatus.BAD_REQUEST, "end_date must be in YYYY-MM-DD format"
+            )
+        }
     }
 
     @Test
-    fun `apod endpoint returns bad request (400) when GetApodsByDateRangeUseCase throws`() {
+    fun `apod endpoint returns bad request (400) when start date is after end date`() {
+        every {
+            getApodsByDateRangeUseCase.execute(any(), any())
+        } throws StartDateAfterEndDateException("start_date cannot be after end_date")
+
+        mockMvc.get("/apods") {
+            param("start_date", "2020-05-10")
+            param("end_date", "2020-05-05")
+        }.andExpect {
+            error(HttpStatus.BAD_REQUEST, "start_date cannot be after end_date")
+        }
+    }
+
+    @Test
+    fun `apod endpoint returns internal server error (500) when GetApodsByDateRangeUseCase throws`() {
         every {
             getApodsByDateRangeUseCase.execute(any(), any())
         } throws Exception("error test 22")
 
-        assertFailsWith<Exception> {
-            mockMvc.get("/apods") {
-                param("start_date", "2020-05-10")
-                param("end_date", "2020-05-05")
-            }
+        mockMvc.get("/apods") {
+            param("start_date", "2020-05-05")
+            param("end_date", "2020-05-10")
+        }.andExpect {
+            error(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error")
         }
+    }
+
+    @Test
+    fun `apod endpoint returns not acceptable (406) when client only accepts XML`() {
+        every {
+            getApodsByDateRangeUseCase.execute(any(), any())
+        } returns listOf()
+
+        mockMvc.get("/apods") {
+            param("start_date", "2020-05-05")
+            param("end_date", "2020-05-10")
+            accept = HttpMediaType.APPLICATION_XML
+        }.andExpect {
+            // The client refuses JSON, so only the status can be sent without body
+            status { isNotAcceptable() }
+        }
+    }
+
+    @Test
+    fun `unknown path returns not found (404)`() {
+        mockMvc.get("/foo").andExpect {
+            error(HttpStatus.NOT_FOUND, "No endpoint GET /foo")
+        }
+    }
+
+    @Test
+    fun `apod endpoint returns method not allowed (405) for POST`() {
+        mockMvc.post("/apods").andExpect {
+            error(HttpStatus.METHOD_NOT_ALLOWED, "POST is not supported")
+        }
+    }
+
+    private fun MockMvcResultMatchersDsl.error(
+        status: HttpStatus, message: String
+    ) {
+        status { isEqualTo(status.value()) }
+        jsonPath("$.status") { value(status.value()) }
+        jsonPath("$.error") { value(status.reasonPhrase) }
+        jsonPath("$.message") { value(message) }
+        jsonPath("$.timestamp") { value(Matchers.endsWith("Z")) }
     }
 }

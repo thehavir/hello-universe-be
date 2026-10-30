@@ -11,7 +11,7 @@ class GetApodsByDateRangeUseCase(private val apodRepository: ApodRepository) {
         endDate: LocalDate,
     ): List<Apod> {
         if (startDate > endDate) {
-            throw StartDateAfterEndDateException("start date cannot be after end date")
+            throw StartDateAfterEndDateException("start_date cannot be after end_date")
         }
 
         return apodRepository.findByDateRange(startDate, endDate)
