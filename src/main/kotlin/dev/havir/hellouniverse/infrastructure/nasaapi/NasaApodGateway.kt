@@ -10,15 +10,19 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 
 @Component
-class NasaApodGateway(private val nasaApiRestClient: RestClient) : ApodGateway {
-    override fun getApod(): Apod? {
-        return nasaApiRestClient.get()
-            .uri { it.path("/planetary/apod").build() }.retrieve()
-            .body<NasaApodDto>()?.toDomain()
-    }
+class NasaApodGateway(
+    private val nasaApiRestClient: RestClient,
+) : ApodGateway {
+    override fun getApod(): Apod? =
+        nasaApiRestClient
+            .get()
+            .uri { it.path("/planetary/apod").build() }
+            .retrieve()
+            .body<NasaApodDto>()
+            ?.toDomain()
 
-    private fun NasaApodDto.toDomain(): Apod {
-        return Apod(
+    private fun NasaApodDto.toDomain(): Apod =
+        Apod(
             date = date,
             title = title,
             explanation = explanation,
@@ -29,13 +33,11 @@ class NasaApodGateway(private val nasaApiRestClient: RestClient) : ApodGateway {
             copyright = copyright,
             serviceVersion = serviceVersion,
         )
-    }
 
-    private fun NasaMediaTypeDto.toDomain(): MediaType {
-        return when (this) {
+    private fun NasaMediaTypeDto.toDomain(): MediaType =
+        when (this) {
             NasaMediaTypeDto.IMAGE -> MediaType.IMAGE
             NasaMediaTypeDto.VIDEO -> MediaType.VIDEO
             NasaMediaTypeDto.OTHER -> MediaType.OTHER
         }
-    }
 }

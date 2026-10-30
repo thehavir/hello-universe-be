@@ -1,6 +1,11 @@
 package dev.havir.hellouniverse.infrastructure.persistence.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDate
 
 @Entity
@@ -9,29 +14,21 @@ class ApodEntity(
     @Id
     @Column(nullable = false, unique = true)
     var date: LocalDate,
-
     @Column(nullable = false)
     var title: String,
-
     @Column(columnDefinition = "TEXT", nullable = false)
     var explanation: String,
-
     @Column(name = "media_type", nullable = false)
     @Enumerated(EnumType.STRING)
     var mediaType: MediaTypeEntity,
-
     @Column(columnDefinition = "TEXT", nullable = true)
     var url: String?,
-
     @Column(name = "hd_url", columnDefinition = "TEXT", nullable = true)
     var hdUrl: String?,
-
     @Column(name = "thumbnail_url", columnDefinition = "TEXT", nullable = true)
     var thumbnailUrl: String?,
-
     @Column(columnDefinition = "TEXT", nullable = true)
     var copyright: String?,
-
     @Column(name = "service_version", nullable = false)
-    var serviceVersion: String
+    var serviceVersion: String,
 )

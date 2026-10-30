@@ -11,7 +11,6 @@ class FetchTodayApodUseCase(
     private val apodRepository: ApodRepository,
     private val clock: Clock,
 ) {
-
     fun execute() {
         val today = LocalDate.now(clock)
         val apodExists = apodRepository.existsByDate(today)
@@ -19,8 +18,10 @@ class FetchTodayApodUseCase(
             return
         }
 
-        val apod = apodGateway.getApod()
-            ?: throw ApodNotFoundException("APOD not found for date: $today")
+        val apod =
+            apodGateway.getApod() ?: throw ApodNotFoundException(
+                "APOD not found for date: $today",
+            )
 
         if (apod.date != today) {
             return

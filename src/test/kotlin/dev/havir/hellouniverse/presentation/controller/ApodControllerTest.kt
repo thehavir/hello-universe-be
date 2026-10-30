@@ -27,7 +27,8 @@ class ApodControllerTest {
         val endDate = LocalDate.of(2020, 8, 8)
         every {
             getApodsByDateRangeUseCase.execute(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } returns apods
 
@@ -42,7 +43,8 @@ class ApodControllerTest {
         val endDate = LocalDate.of(2014, 3, 1)
         every {
             getApodsByDateRangeUseCase.execute(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } returns emptyList()
 
@@ -55,22 +57,26 @@ class ApodControllerTest {
     fun `on getApods returns list of ApodResponse when GetApodsUseCase returns list of Apods`() {
         val startDate = LocalDate.of(2014, 3, 10)
         val endDate = LocalDate.of(2014, 4, 10)
-        val apods = listOf(
-            TestModels.apod(title = "a1"), TestModels.apod(title = "a2")
-        )
+        val apods =
+            listOf(
+                TestModels.apod(title = "a1"),
+                TestModels.apod(title = "a2"),
+            )
         every {
             getApodsByDateRangeUseCase.execute(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } returns apods
 
         val result = tested.getApods(startDate, endDate)
 
         assertEquals(
-            result, listOf(
+            listOf(
                 TestModels.apodResponse(title = "a1"),
-                TestModels.apodResponse(title = "a2")
-            )
+                TestModels.apodResponse(title = "a2"),
+            ),
+            result,
         )
     }
 }

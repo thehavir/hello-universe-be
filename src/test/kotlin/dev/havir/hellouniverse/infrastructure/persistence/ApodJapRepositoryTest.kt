@@ -33,9 +33,11 @@ class ApodJapRepositoryTest {
         entityManager.persist(apod1)
         entityManager.flush()
 
-        val result = tested.findByDateBetweenOrderByDateAsc(
-            from = startDate, to = endDate
-        )
+        val result =
+            tested.findByDateBetweenOrderByDateAsc(
+                from = startDate,
+                to = endDate,
+            )
 
         assertEquals(expectedResult, result)
     }
@@ -50,9 +52,11 @@ class ApodJapRepositoryTest {
         entityManager.persist(apod1)
         entityManager.flush()
 
-        val result = tested.findByDateBetweenOrderByDateAsc(
-            from = startDate, to = endDate
-        )
+        val result =
+            tested.findByDateBetweenOrderByDateAsc(
+                from = startDate,
+                to = endDate,
+            )
 
         assertEquals(emptyList(), result)
     }

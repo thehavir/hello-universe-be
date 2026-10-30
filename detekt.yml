@@ -1,0 +1,20 @@
+# Overrides on top of detekt's default config (buildUponDefaultConfig).
+# Only list rules that differ from the defaults.
+
+style:
+  MaxLineLength:
+    # Match ktfmt's maxWidth in pom.xml
+    maxLineLength: 80
+    # Long lines in tests are descriptive test names in backticks, which can't be wrapped
+    excludes: ['**/test/**']
+
+complexity:
+  LongParameterList:
+    active: false
+  LongMethod:
+    excludes: ['**/test/**']
+
+performance:
+  SpreadOperator:
+    # Only used in main() to pass args to runApplication
+    active: false

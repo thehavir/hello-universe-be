@@ -8,18 +8,24 @@ import org.springframework.http.client.support.HttpRequestWrapper
 import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
 
-class NasaApiKeyInterceptor(private val apiKey: String) :
-    ClientHttpRequestInterceptor {
+class NasaApiKeyInterceptor(
+    private val apiKey: String,
+) : ClientHttpRequestInterceptor {
     override fun intercept(
         request: HttpRequest,
         body: ByteArray,
-        execution: ClientHttpRequestExecution
+        execution: ClientHttpRequestExecution,
     ): ClientHttpResponse {
-        val modifiedUri = UriComponentsBuilder.fromUri(request.uri)
-            .queryParam("api_key", apiKey).build().toUri()
-        val modifiedRequest = object : HttpRequestWrapper(request) {
-            override fun getURI(): URI = modifiedUri
-        }
+        val modifiedUri =
+            UriComponentsBuilder
+                .fromUri(request.uri)
+                .queryParam("api_key", apiKey)
+                .build()
+                .toUri()
+        val modifiedRequest =
+            object : HttpRequestWrapper(request) {
+                override fun getURI(): URI = modifiedUri
+            }
 
         return execution.execute(modifiedRequest, body)
     }

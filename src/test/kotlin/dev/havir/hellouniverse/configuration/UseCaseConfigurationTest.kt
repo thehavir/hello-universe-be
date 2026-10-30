@@ -17,11 +17,12 @@ class UseCaseConfigurationTest {
     fun setUp() {
         apodGateway = mockk()
         apodRepository = mockk()
-        tested = UseCaseConfiguration(
-            apodGateway = apodGateway,
-            apodRepository = apodRepository,
-            clock = Clock.systemUTC()
-        )
+        tested =
+            UseCaseConfiguration(
+                apodGateway = apodGateway,
+                apodRepository = apodRepository,
+                clock = Clock.systemUTC(),
+            )
     }
 
     @Test

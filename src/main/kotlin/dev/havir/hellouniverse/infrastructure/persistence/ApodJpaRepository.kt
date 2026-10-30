@@ -5,5 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDate
 
 interface ApodJpaRepository : JpaRepository<ApodEntity, LocalDate> {
-    fun findByDateBetweenOrderByDateAsc(from: LocalDate, to: LocalDate): List<ApodEntity>
+    fun findByDateBetweenOrderByDateAsc(
+        from: LocalDate,
+        to: LocalDate,
+    ): List<ApodEntity>
 }

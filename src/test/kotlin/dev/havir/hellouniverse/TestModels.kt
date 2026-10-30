@@ -19,17 +19,18 @@ object TestModels {
         thumbnailUrl: String? = null,
         copyright: String? = null,
         serviceVersion: String = "serviceVersion",
-    ): Apod = Apod(
-        date = date,
-        title = title,
-        explanation = explanation,
-        mediaType = mediaType,
-        url = url,
-        hdUrl = hdUrl,
-        thumbnailUrl = thumbnailUrl,
-        copyright = copyright,
-        serviceVersion = serviceVersion,
-    )
+    ): Apod =
+        Apod(
+            date = date,
+            title = title,
+            explanation = explanation,
+            mediaType = mediaType,
+            url = url,
+            hdUrl = hdUrl,
+            thumbnailUrl = thumbnailUrl,
+            copyright = copyright,
+            serviceVersion = serviceVersion,
+        )
 
     fun apodEntity(
         date: LocalDate = LocalDate.of(1970, 1, 1),
@@ -41,17 +42,18 @@ object TestModels {
         thumbnailUrl: String? = null,
         copyright: String? = null,
         serviceVersion: String = "serviceVersion",
-    ): ApodEntity = ApodEntity(
-        date = date,
-        title = title,
-        explanation = explanation,
-        mediaType = mediaType,
-        url = url,
-        hdUrl = hdUrl,
-        thumbnailUrl = thumbnailUrl,
-        copyright = copyright,
-        serviceVersion = serviceVersion,
-    )
+    ): ApodEntity =
+        ApodEntity(
+            date = date,
+            title = title,
+            explanation = explanation,
+            mediaType = mediaType,
+            url = url,
+            hdUrl = hdUrl,
+            thumbnailUrl = thumbnailUrl,
+            copyright = copyright,
+            serviceVersion = serviceVersion,
+        )
 
     fun apodResponse(
         date: LocalDate = LocalDate.of(1970, 1, 1),
@@ -63,15 +65,16 @@ object TestModels {
         thumbnailUrl: String? = null,
         copyright: String? = null,
         serviceVersion: String = "serviceVersion",
-    ): ApodResponse = ApodResponse(
-        date = date,
-        title = title,
-        explanation = explanation,
-        mediaType = mediaType,
-        url = url,
-        hdUrl = hdUrl,
-        thumbnailUrl = thumbnailUrl,
-        copyright = copyright,
-        serviceVersion = serviceVersion,
-    )
+    ): ApodResponse =
+        ApodResponse(
+            date = date,
+            title = title,
+            explanation = explanation,
+            mediaType = mediaType,
+            url = url,
+            hdUrl = hdUrl,
+            thumbnailUrl = thumbnailUrl,
+            copyright = copyright,
+            serviceVersion = serviceVersion,
+        )
 }

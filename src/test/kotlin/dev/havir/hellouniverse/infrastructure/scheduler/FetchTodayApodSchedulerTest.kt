@@ -20,7 +20,7 @@ class FetchTodayApodSchedulerTest {
 
     @Test
     fun `on scheduleFetchApod calls execute on FetchTodayApodUseCase`() {
-        every { fetchTodayApodUseCase.execute() } answers { }
+        every { fetchTodayApodUseCase.execute() } answers {}
 
         tested.fetchApod()
 

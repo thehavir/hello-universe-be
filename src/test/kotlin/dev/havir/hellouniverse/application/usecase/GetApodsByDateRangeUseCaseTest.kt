@@ -31,7 +31,8 @@ class GetApodsByDateRangeUseCaseTest {
         val expected = listOf(TestModels.apod())
         every {
             apodRepository.findByDateRange(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } returns expected
 
@@ -47,7 +48,8 @@ class GetApodsByDateRangeUseCaseTest {
         val error = "Test error 1"
         every {
             apodRepository.findByDateRange(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } throws RuntimeException(error)
 
@@ -74,7 +76,8 @@ class GetApodsByDateRangeUseCaseTest {
         val expected = listOf(TestModels.apod())
         every {
             apodRepository.findByDateRange(
-                startDate = startDate, endDate = endDate
+                startDate = startDate,
+                endDate = endDate,
             )
         } returns expected
 
@@ -89,13 +92,15 @@ class GetApodsByDateRangeUseCaseTest {
         val endDate = LocalDate.of(2020, 1, 5)
         every {
             apodRepository.findByDateRange(
-                startDate = startDate, endDate = endDate
+                startDate = startDate,
+                endDate = endDate,
             )
         }
 
         assertFailsWith<StartDateAfterEndDateException> {
             tested.execute(
-                startDate = startDate, endDate = endDate
+                startDate = startDate,
+                endDate = endDate,
             )
         }
     }
@@ -104,19 +109,21 @@ class GetApodsByDateRangeUseCaseTest {
     fun `on execute returns list of Apods when start date is before end date`() {
         val startDate = LocalDate.of(1970, 1, 1)
         val endDate = LocalDate.of(1970, 2, 1)
-        val expected = listOf(
-            TestModels.apod(title = "apod1"),
-            TestModels.apod(title = "apod2"),
-        )
+        val expected =
+            listOf(
+                TestModels.apod(title = "apod1"),
+                TestModels.apod(title = "apod2"),
+            )
         every {
             apodRepository.findByDateRange(
-                startDate, endDate
+                startDate,
+                endDate,
             )
         } returns expected
 
         val result = tested.execute(startDate, endDate)
 
-        assertEquals(result, expected)
+        assertEquals(expected, result)
     }
 
     @Test
@@ -125,12 +132,13 @@ class GetApodsByDateRangeUseCaseTest {
         val date = LocalDate.of(2025, 1, 1)
         every {
             apodRepository.findByDateRange(
-                startDate = date, endDate = date
+                startDate = date,
+                endDate = date,
             )
         } returns expected
 
         val result = tested.execute(startDate = date, endDate = date)
 
-        assertEquals(result, expected)
+        assertEquals(expected, result)
     }
 }

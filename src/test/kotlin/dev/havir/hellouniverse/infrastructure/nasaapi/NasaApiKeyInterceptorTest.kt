@@ -11,7 +11,6 @@ import java.net.URI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-
 class NasaApiKeyInterceptorTest {
     lateinit var httpRequest: HttpRequest
     lateinit var execution: ClientHttpRequestExecution
@@ -30,16 +29,19 @@ class NasaApiKeyInterceptorTest {
         val slot = slot<HttpRequest>()
         every {
             execution.execute(
-                capture(slot), any()
+                capture(slot),
+                any(),
             )
         } returns MockClientHttpResponse()
         every { httpRequest.uri } returns uri
 
         tested.intercept(
-            request = httpRequest, body = byteArrayOf(), execution = execution
+            request = httpRequest,
+            body = byteArrayOf(),
+            execution = execution,
         )
 
-        assertEquals("api_key=${expectedResult}", slot.captured.uri.query)
+        assertEquals("api_key=$expectedResult", slot.captured.uri.query)
     }
 
     @Test
@@ -49,17 +51,21 @@ class NasaApiKeyInterceptorTest {
         val tested = NasaApiKeyInterceptor("key")
         every {
             execution.execute(
-                capture(slot), any()
+                capture(slot),
+                any(),
             )
         } returns MockClientHttpResponse()
         every { httpRequest.uri } returns expectedResult
 
         tested.intercept(
-            request = httpRequest, body = byteArrayOf(), execution = execution
+            request = httpRequest,
+            body = byteArrayOf(),
+            execution = execution,
         )
 
         assertEquals(
-            URI.create("https://localhost?api_key=key"), slot.captured.uri
+            URI.create("https://localhost?api_key=key"),
+            slot.captured.uri,
         )
     }
 }

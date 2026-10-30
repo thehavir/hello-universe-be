@@ -1,0 +1,24 @@
+root = true
+
+# Read by ktlint (through Spotless) and by IntelliJ's own Kotlin formatter,
+# so ./mvnw spotless:apply and Reformat Code give the same result.
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+max_line_length = 80
+
+# ktlint's default style; wraps code to max_line_length
+ktlint_code_style = ktlint_official
+
+# Trailing commas on declarations and call sites
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# No wildcard imports
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+
+[src/test/**.kt]
+# Descriptive test names in backticks can't be wrapped
+ktlint_standard_max-line-length = disabled

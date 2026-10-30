@@ -159,6 +159,31 @@ NASA_API_KEY='your_nasa_api_key' \
 ./mvnw test
 ```
 
+## Format and Analyze
+
+Formatting uses [ktlint](https://pinterest.github.io/ktlint/) (`ktlint_official` style, 80 columns) through Spotless, configured in `.editorconfig`. Static analysis uses [detekt](https://detekt.dev) with overrides in `detekt.yml`.
+
+```bash
+# Format all Kotlin code
+./mvnw spotless:apply
+
+# Check formatting only
+./mvnw spotless:check
+
+# Run static analysis only
+./mvnw detekt:check
+
+# Tests, formatting check and static analysis together
+./mvnw verify
+```
+
+**IntelliJ setup**
+
+- Install the **Ktlint** plugin. It reads `.editorconfig`, so it formats the same way as `spotless:apply`. In *Settings → Tools → KtLint*, enable it and turn on formatting on save.
+- If the **ktfmt** plugin is installed, disable it for this project in *Settings → Editor → ktfmt*, or Reformat Code (⌥⌘L) will format with ktfmt.
+- In *Settings → Tools → Actions on Save*, enable **Optimize imports**.
+- Install the **Detekt** plugin. In *Settings → Tools → detekt*, add `detekt.yml` under **Configuration files** and keep **Build upon default config** on, so the editor uses the same rules as `./mvnw detekt:check`.
+
 ## Acknowledgment
 
 Special thanks to [@akaiser](https://github.com/akaiser) for his help and guidance to build this project!

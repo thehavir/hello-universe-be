@@ -12,18 +12,21 @@ import java.time.LocalDate
 
 @RestController
 @RequestMapping("/apods")
-class ApodController(private val getApodsByDateRangeUseCase: GetApodsByDateRangeUseCase) {
-
+class ApodController(
+    private val getApodsByDateRangeUseCase: GetApodsByDateRangeUseCase,
+) {
     @GetMapping
     fun getApods(
         @RequestParam("start_date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         startDate: LocalDate,
-
         @RequestParam("end_date")
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        endDate: LocalDate
-    ): List<ApodResponse> = getApodsByDateRangeUseCase.execute(
-        startDate = startDate, endDate = endDate
-    ).toResponse()
+        endDate: LocalDate,
+    ): List<ApodResponse> =
+        getApodsByDateRangeUseCase
+            .execute(
+                startDate = startDate,
+                endDate = endDate,
+            ).toResponse()
 }

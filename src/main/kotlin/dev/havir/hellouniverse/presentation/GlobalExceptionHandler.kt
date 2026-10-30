@@ -20,21 +20,24 @@ class GlobalExceptionHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(StartDateAfterEndDateException::class)
-    fun handleStartAfterEnd(exception: StartDateAfterEndDateException) = error(
-        HttpStatus.BAD_REQUEST,
-        exception.message ?: "start_date cannot be after end_date",
-    )
+    fun handleStartAfterEnd(exception: StartDateAfterEndDateException) =
+        error(
+            HttpStatus.BAD_REQUEST,
+            exception.message ?: "start_date cannot be after end_date",
+        )
 
     @ExceptionHandler(DateRangeTooLargeException::class)
-    fun handleRangeTooLarge(exception: DateRangeTooLargeException) = error(
-        HttpStatus.BAD_REQUEST,
-        exception.message ?: "date range is too large",
-    )
+    fun handleRangeTooLarge(exception: DateRangeTooLargeException) =
+        error(
+            HttpStatus.BAD_REQUEST,
+            exception.message ?: "date range is too large",
+        )
 
     @ExceptionHandler(MissingServletRequestParameterException::class)
     fun handleMissingParam(exception: MissingServletRequestParameterException) =
         error(
-            HttpStatus.BAD_REQUEST, "${exception.parameterName} is required"
+            HttpStatus.BAD_REQUEST,
+            "${exception.parameterName} is required",
         )
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
@@ -45,21 +48,23 @@ class GlobalExceptionHandler {
                 "${exception.name} must be in YYYY-MM-DD format"
             } else {
                 "${exception.name} has an invalid value"
-            }
+            },
         )
 
     @ExceptionHandler(NoResourceFoundException::class)
-    fun handleNotFound(exception: NoResourceFoundException) = error(
-        HttpStatus.NOT_FOUND,
-        "No endpoint ${exception.httpMethod} /${exception.resourcePath}"
-    )
+    fun handleNotFound(exception: NoResourceFoundException) =
+        error(
+            HttpStatus.NOT_FOUND,
+            "No endpoint ${exception.httpMethod} /${exception.resourcePath}",
+        )
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-    fun handleMethodNotAllowed(exception: HttpRequestMethodNotSupportedException) =
-        error(
-            HttpStatus.METHOD_NOT_ALLOWED,
-            "${exception.method} is not supported"
-        )
+    fun handleMethodNotAllowed(
+        exception: HttpRequestMethodNotSupportedException,
+    ) = error(
+        HttpStatus.METHOD_NOT_ALLOWED,
+        "${exception.method} is not supported",
+    )
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpected(exception: Exception): ResponseEntity<ErrorResponse> {
@@ -71,17 +76,22 @@ class GlobalExceptionHandler {
 
         logger.error("Unexpected error", exception)
         return error(
-            HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error"
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Unexpected error",
         )
     }
 
     private fun error(
-        status: HttpStatus, message: String
-    ): ResponseEntity<ErrorResponse> = ResponseEntity.status(status).body(
-        ErrorResponse(
-            status = status.value(),
-            error = status.reasonPhrase,
-            message = message,
-        )
-    )
+        status: HttpStatus,
+        message: String,
+    ): ResponseEntity<ErrorResponse> =
+        ResponseEntity
+            .status(status)
+            .body(
+                ErrorResponse(
+                    status = status.value(),
+                    error = status.reasonPhrase,
+                    message = message,
+                ),
+            )
 }
