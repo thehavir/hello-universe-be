@@ -53,7 +53,7 @@ Both dates are included. The range can be at most 100 days; a longer range retur
     "date": "2024-01-15",
     "title": "string",
     "explanation": "string",
-    "media_type": "IMAGE | VIDEO | OTHER",
+    "media_type": "image | video | other",
     "url": "string | null",
     "hd_url": "string | null",
     "thumbnail_url": "string | null",
