@@ -26,6 +26,8 @@ nasa:
   api:
     base-url: https://api.nasa.gov
     api-key: ${NASA_API_KEY}
+    connect-timeout: 5s
+    read-timeout: 15s
 
 # Scheduler configuration
 scheduler:
