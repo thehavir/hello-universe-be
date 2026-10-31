@@ -2,6 +2,7 @@ package dev.havir.hellouniverse.infrastructure.nasaapi
 
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.domain.ApodGateway
+import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
 import dev.havir.hellouniverse.domain.model.MediaType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertNull
@@ -68,9 +69,60 @@ class NasaApodGatewayTest {
     }
 
     @Test
-    fun `on getApod returns Apod`() {
+    fun `on getApod throws ApodNotFoundException when API returns placeholder`() {
         val json =
-            """
+            placeholderJson(
+                explanation = "Discover the cosmos! Each day a different image bla...",
+                url = "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png",
+            )
+        mockServer
+            .expect(requestTo("/planetary/apod"))
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        tested = NasaApodGateway(restClientBuilder.build())
+
+        assertFailsWith<ApodNotFoundException> { tested.getApod() }
+    }
+
+    @Test
+    fun `on getApod returns Apod when url is NASA logo but explanation is real`() {
+        val json =
+            placeholderJson(
+                explanation = "A real explanation.",
+                url = "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png",
+            )
+        mockServer
+            .expect(requestTo("/planetary/apod"))
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        tested = NasaApodGateway(restClientBuilder.build())
+
+        val result = tested.getApod()
+
+        assertEquals("A real explanation.", result?.explanation)
+    }
+
+    @Test
+    fun `on getApod returns Apod when explanation is placeholder but url is real`() {
+        val json =
+            placeholderJson(
+                explanation = "Discover the cosmos! Each day a different image bla...",
+                url = "https://apod.nasa.gov/apod/image/real.jpg",
+            )
+        mockServer
+            .expect(requestTo("/planetary/apod"))
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        tested = NasaApodGateway(restClientBuilder.build())
+
+        val result = tested.getApod()
+
+        assertEquals(
+            "https://apod.nasa.gov/apod/image/real.jpg",
+            result?.url,
+        )
+    }
+
+    @Test
+    fun `on getApod returns Apod`() {
+        val json = """
     {
         "date": "2024-01-01",
         "title": "Test Title",
@@ -82,14 +134,12 @@ class NasaApodGatewayTest {
         "service_version": "v1"
     }
 """
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(
-                withSuccess(
-                    json,
-                    HttpMediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expect(requestTo("/planetary/apod")).andRespond(
+            withSuccess(
+                json,
+                HttpMediaType.APPLICATION_JSON,
+            ),
+        )
         tested = NasaApodGateway(restClientBuilder.build())
 
         val result = tested.getApod()
@@ -111,8 +161,7 @@ class NasaApodGatewayTest {
 
     @Test
     fun `on getApod returns Apod when media_type is image`() {
-        val json =
-            """
+        val json = """
     {
         "date": "2024-01-01",
         "title": "Test Title",
@@ -121,14 +170,12 @@ class NasaApodGatewayTest {
         "service_version": "v1"
     }
 """
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(
-                withSuccess(
-                    json,
-                    HttpMediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expect(requestTo("/planetary/apod")).andRespond(
+            withSuccess(
+                json,
+                HttpMediaType.APPLICATION_JSON,
+            ),
+        )
         tested = NasaApodGateway(restClientBuilder.build())
 
         val result = tested.getApod()
@@ -147,8 +194,7 @@ class NasaApodGatewayTest {
 
     @Test
     fun `on getApod returns Apod when media_type is video`() {
-        val json =
-            """
+        val json = """
     {
         "date": "2024-01-01",
         "title": "Test Title",
@@ -157,14 +203,12 @@ class NasaApodGatewayTest {
         "service_version": "v1"
     }
 """
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(
-                withSuccess(
-                    json,
-                    HttpMediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expect(requestTo("/planetary/apod")).andRespond(
+            withSuccess(
+                json,
+                HttpMediaType.APPLICATION_JSON,
+            ),
+        )
         tested = NasaApodGateway(restClientBuilder.build())
 
         val result = tested.getApod()
@@ -183,8 +227,7 @@ class NasaApodGatewayTest {
 
     @Test
     fun `on getApod returns Apod when media_type is other`() {
-        val json =
-            """
+        val json = """
     {
         "date": "2024-01-01",
         "title": "Test Title",
@@ -193,14 +236,12 @@ class NasaApodGatewayTest {
         "service_version": "v1"
     }
 """
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(
-                withSuccess(
-                    json,
-                    HttpMediaType.APPLICATION_JSON,
-                ),
-            )
+        mockServer.expect(requestTo("/planetary/apod")).andRespond(
+            withSuccess(
+                json,
+                HttpMediaType.APPLICATION_JSON,
+            ),
+        )
         tested = NasaApodGateway(restClientBuilder.build())
 
         val result = tested.getApod()
@@ -219,8 +260,7 @@ class NasaApodGatewayTest {
 
     @Test
     fun `on getApod throws when response is not correct`() {
-        val jsonWithoutDate =
-            """
+        val jsonWithoutDate = """
     {
         "title": "Test Title",
         "explanation": "Test explanation",
@@ -229,11 +269,9 @@ class NasaApodGatewayTest {
         "service_version": "v1"
     }
 """
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(
-                withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON),
-            )
+        mockServer.expect(requestTo("/planetary/apod")).andRespond(
+            withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON),
+        )
         tested = NasaApodGateway(restClientBuilder.build())
 
         assertFailsWith<RestClientException> { tested.getApod() }
@@ -248,4 +286,18 @@ class NasaApodGatewayTest {
 
         assertFailsWith<RestClientException> { tested.getApod() }
     }
+
+    private fun placeholderJson(
+        explanation: String,
+        url: String,
+    ) = """
+        {
+            "date": "2024-01-01",
+            "title": "NASA Science",
+            "explanation": "$explanation",
+            "media_type": "image",
+            "url": "$url",
+            "service_version": "v1"
+        }
+        """.trimIndent()
 }
