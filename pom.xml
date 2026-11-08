@@ -11,7 +11,7 @@
     </parent>
     <groupId>dev.havir</groupId>
     <artifactId>hellouniverse</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>hellouniverse</name>
     <description>An application functioning as a proxy for the NASA Astronomy
         Picture of the Day (APOD) API. It includes full archive caching and
