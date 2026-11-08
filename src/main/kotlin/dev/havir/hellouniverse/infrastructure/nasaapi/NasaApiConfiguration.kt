@@ -1,5 +1,7 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
 
+import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaApodDto
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,6 +15,7 @@ import java.net.http.HttpClient
 // not on the ApodGateway interface, so an interface proxy would skip retries
 @EnableResilientMethods(proxyTargetClass = true)
 @EnableConfigurationProperties(NasaApiProperties::class)
+@RegisterReflectionForBinding(NasaApodDto::class)
 class NasaApiConfiguration(
     private val nasaApiProperties: NasaApiProperties,
 ) {
