@@ -6,6 +6,9 @@ checksums='{}'
 for source in target/app target/*.so*; do
   [[ -f "$source" && ! -L "$source" ]] || { echo "Not a regular file: $source" >&2; exit 1; }
   name=$(basename "$source")
+  # AWT's desktop library needs X11, which the server lacks. The app runs headless,
+  # so Java loads libawt_headless.so and never this file.
+  [[ "$name" == libawt_xawt.so ]] && continue
   [[ "$name" =~ ^(app|[A-Za-z0-9_.+-]+\.so(\.[0-9.]+)?)$ ]] || { echo "Unexpected native file name: $name" >&2; exit 1; }
   install -m 750 "$source" "release-files/$name"
   checksum=$(sha256sum "release-files/$name" | cut -d ' ' -f 1)
