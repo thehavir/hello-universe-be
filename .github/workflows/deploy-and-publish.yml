@@ -58,20 +58,13 @@ jobs:
           version: ${{ inputs.version }}
         env:
           GH_TOKEN: ${{ github.token }}
-      - name: Check the infra repository settings
-        if: steps.release-check.outputs.needed == 'true'
-        env:
-          INFRA_REPOSITORY: ${{ vars.INFRA_REPOSITORY }}
-          INFRA_COMMIT: ${{ vars.INFRA_COMMIT }}
-        run: |
-          [[ "$INFRA_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo 'Set INFRA_REPOSITORY to owner/repository.' >&2; exit 1; }
-          [[ "$INFRA_COMMIT" =~ ^[0-9a-f]{40}$ ]] || { echo 'Set INFRA_COMMIT to a full pushed commit SHA.' >&2; exit 1; }
       - name: Check out the infra playbooks at the pinned commit
         if: steps.release-check.outputs.needed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: ${{ vars.INFRA_REPOSITORY }}
-          ref: ${{ vars.INFRA_COMMIT }}
+          repository: thehavir/hello-universe-infra
+          # Update this full SHA in a backend PR to adopt infra changes.
+          ref: 350fd35e968f0fa62e9d215d9418cbbf075b3ae3 # infra main, 2026-11-07
           token: ${{ secrets.INFRA_READ_TOKEN }}
           persist-credentials: false
           path: infra
