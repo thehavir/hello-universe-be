@@ -1,0 +1,16 @@
+name: Collect release files
+description: Copy the native executable and its shared libraries into release-files/ and write manifest.json with their SHA-256 checksums.
+
+inputs:
+  version:
+    description: Application version to record in the manifest.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Collect the release files and write their manifest
+      shell: bash
+      env:
+        RELEASE_VERSION: ${{ inputs.version }}
+      run: bash "$GITHUB_ACTION_PATH/collect-release-files.sh"

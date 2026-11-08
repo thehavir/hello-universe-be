@@ -1,0 +1,16 @@
+name: Write Ansible inputs
+description: Write the SSH key, the VPS host key, the Ansible inventory, and the playbook's extra variables to the runner's temporary folder.
+
+inputs:
+  build-id:
+    description: Run ID and attempt of the build, joined by a dash. Passed to Ansible as deployment_id.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Write the SSH files and Ansible inputs
+      shell: bash
+      env:
+        BUILD_ID: ${{ inputs.build-id }}
+      run: bash "$GITHUB_ACTION_PATH/write-ansible-inputs.sh"

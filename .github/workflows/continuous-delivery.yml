@@ -1,0 +1,39 @@
+name: Continuous delivery
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+    with:
+      base-sha: ${{ github.event.before }}
+
+  build-native:
+    name: Build native executable
+    needs: verify
+    uses: ./.github/workflows/build-native-executable.yml
+    with:
+      version: ${{ needs.verify.outputs.version }}
+      upload-for-deployment: ${{ needs.verify.outputs.should-release == 'true' }}
+
+  deploy-and-publish:
+    name: Deploy and publish
+    needs: [verify, build-native]
+    if: needs.verify.outputs.should-release == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy-and-publish.yml
+    with:
+      version: ${{ needs.verify.outputs.version }}
+      artifact-name: ${{ needs.build-native.outputs.artifact-name }}
+      build-id: ${{ needs.build-native.outputs.build-id }}
+    secrets:
+      INFRA_READ_TOKEN: ${{ secrets.INFRA_READ_TOKEN }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
