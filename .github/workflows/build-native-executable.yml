@@ -1,0 +1,104 @@
+name: Build native executable
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Application version to record in the release manifest.
+        required: true
+        type: string
+      upload-for-deployment:
+        description: Upload the smoke-tested archive so the deploy job can use it. Pull-request builds only verify.
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      artifact-name:
+        description: Name of the uploaded workflow artifact that holds the release archive.
+        value: ${{ jobs.build-and-smoke-test.outputs.artifact-name }}
+      build-id:
+        description: Run ID and attempt of this build, joined by a dash. Ansible uses it as deployment_id.
+        value: ${{ jobs.build-and-smoke-test.outputs.build-id }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-and-smoke-test:
+    name: Build and smoke-test
+    runs-on: ${{ vars.NATIVE_BUILD_RUNNER || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    outputs:
+      artifact-name: native-release-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      build-id: ${{ github.run_id }}-${{ github.run_attempt }}
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CONFIG_ADDITIONAL_LOCATION: ''
+      DB_URL: jdbc:postgresql://127.0.0.1:5432/smoke_test
+      DB_USERNAME: smoke_test
+      DB_PASSWORD: smoke-test-only-password
+      NASA_API_KEY: ci-placeholder
+    services:
+      postgres:
+        # Images are pinned by digest like the actions. Update them by hand.
+        image: postgres:18@sha256:e3d24f6906d0760bf4da0dae872415391ededefad23fd471c47dc53b0ddf3c42
+        env:
+          POSTGRES_USER: smoke_test
+          POSTGRES_PASSWORD: smoke-test-only-password
+          POSTGRES_DB: smoke_test
+        ports: [ '5432:5432' ]
+        options: >-
+          --health-cmd "pg_isready -U smoke_test -d smoke_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      nasa-api-mock:
+        image: wiremock/wiremock:3.13.2-3@sha256:0d4ecb3e4dc8213fd7a4d37d6a78f6e6b553a6d2e15bd51b0999781282ac61b3
+        ports: [ '18081:8080' ]
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up GraalVM 25
+        uses: graalvm/setup-graalvm@f70bc8032f90a104502824a54bcb94b6f01715bc # v1.6.8
+        with:
+          java-version: '25'
+          distribution: graalvm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+      - name: Install the native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential zlib1g-dev libfreetype6-dev python3 curl jq
+      - name: Compile the production native executable
+        run: >-
+          sh ./mvnw --batch-mode --no-transfer-progress
+          -Dkotlin.compiler.daemon=false -Pnative -DskipTests native:compile
+      - name: Collect the release files and write their manifest
+        uses: ./.github/actions/collect-release-files
+        with:
+          version: ${{ inputs.version }}
+      - name: Smoke-test the native app with PostgreSQL and a mock NASA API
+        run: python3 .github/scripts/smoke-test-native-app.py
+      - name: Pack the release files into an archive
+        if: inputs.upload-for-deployment
+        run: tar -czf hello-universe-native.tar.gz -C release-files .
+      - name: Upload the archive for deployment
+        if: inputs.upload-for-deployment
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-release-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: hello-universe-native.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload the smoke-test log after a failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: smoke-test-log-${{ github.run_id }}-${{ github.run_attempt }}
+          path: target/smoke-test-native-app.log
+          if-no-files-found: ignore
+          retention-days: 7

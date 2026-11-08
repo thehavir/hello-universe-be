@@ -184,6 +184,11 @@ Formatting uses [ktlint](https://pinterest.github.io/ktlint/) (`ktlint_official`
 - In *Settings → Tools → Actions on Save*, enable **Optimize imports**.
 - Install the **Detekt** plugin. In *Settings → Tools → detekt*, add `detekt.yml` under **Configuration files** and keep **Build upon default config** on, so the editor uses the same rules as `./mvnw detekt:check`.
 
+## CI and releases
+
+Pull requests and pushes to `main` are checked by GitHub Actions. Raising the
+stable version in `pom.xml` on `main` deploys and publishes a release.
+
 ## Acknowledgment
 
 Special thanks to [@akaiser](https://github.com/akaiser) for his help and guidance to build this project!

@@ -1,0 +1,22 @@
+name: Check that the release is still needed
+description: Decide whether to deploy. Skip when main now asks for another version or this version is already published; fail when its tag belongs to another commit.
+
+inputs:
+  version:
+    description: Stable version built by this run, without the v prefix.
+    required: true
+
+outputs:
+  needed:
+    description: "'true' when this version still needs deploying; empty otherwise."
+    value: ${{ steps.check.outputs.needed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Compare with main, the tag, and published releases
+      id: check
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: bash "$GITHUB_ACTION_PATH/check-release-needed.sh"

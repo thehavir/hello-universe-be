@@ -10,6 +10,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  # Release the database connection when the query finishes, not when the
+  # response is written. Entities are mapped to domain models right away.
+  jpa:
+    open-in-view: false
+
 # Actuator: only /actuator/health is exposed, without details.
 # It includes a DB check, so it reports DOWN when the database is unreachable.
 management:
