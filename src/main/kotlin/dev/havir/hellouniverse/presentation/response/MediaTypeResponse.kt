@@ -9,6 +9,9 @@ enum class MediaTypeResponse {
     @JsonProperty("video")
     VIDEO,
 
+    @JsonProperty("web_app")
+    WEB_APP,
+
     @JsonProperty("other")
     OTHER,
 }

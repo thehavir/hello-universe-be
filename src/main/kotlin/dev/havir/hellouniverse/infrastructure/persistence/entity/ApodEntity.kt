@@ -18,17 +18,17 @@ class ApodEntity(
     var title: String,
     @Column(columnDefinition = "TEXT", nullable = false)
     var explanation: String,
+    @Column(columnDefinition = "TEXT", nullable = true)
+    var credit: String?,
+    @Column(columnDefinition = "TEXT", nullable = true)
+    var copyright: String?,
     @Column(name = "media_type", nullable = false)
     @Enumerated(EnumType.STRING)
     var mediaType: MediaTypeEntity,
     @Column(columnDefinition = "TEXT", nullable = true)
     var url: String?,
-    @Column(name = "hd_url", columnDefinition = "TEXT", nullable = true)
-    var hdUrl: String?,
     @Column(name = "thumbnail_url", columnDefinition = "TEXT", nullable = true)
     var thumbnailUrl: String?,
-    @Column(columnDefinition = "TEXT", nullable = true)
-    var copyright: String?,
-    @Column(name = "service_version", nullable = false)
-    var serviceVersion: String,
+    @Column(name = "source_url", columnDefinition = "TEXT", nullable = true)
+    var sourceUrl: String?,
 )

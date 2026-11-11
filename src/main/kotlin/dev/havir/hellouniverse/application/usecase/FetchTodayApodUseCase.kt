@@ -15,6 +15,8 @@ class FetchTodayApodUseCase(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun execute() {
+        // Todo: Change this to fetch a list of APODs from today to the
+        //  last APOD that is missing.
         val today = LocalDate.now(clock)
         if (apodRepository.existsByDate(today)) {
             logger.debug("APOD for {} is already stored", today)

@@ -10,17 +10,18 @@ fun Apod.toResponse(): ApodResponse =
         date = date,
         title = title,
         explanation = explanation,
+        credit = credit,
+        copyright = copyright,
         mediaType = mediaType.toResponse(),
         url = url,
-        hdUrl = hdUrl,
         thumbnailUrl = thumbnailUrl,
-        copyright = copyright,
-        serviceVersion = serviceVersion,
+        sourceUrl = sourceUrl,
     )
 
 fun MediaType.toResponse(): MediaTypeResponse =
     when (this) {
         MediaType.IMAGE -> MediaTypeResponse.IMAGE
         MediaType.VIDEO -> MediaTypeResponse.VIDEO
+        MediaType.WEB_APP -> MediaTypeResponse.WEB_APP
         MediaType.OTHER -> MediaTypeResponse.OTHER
     }
