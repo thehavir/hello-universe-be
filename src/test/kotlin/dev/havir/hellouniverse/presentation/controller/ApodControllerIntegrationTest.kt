@@ -74,10 +74,10 @@ class ApodControllerIntegrationTest {
                 explanation = "A Galaxy far far away",
                 mediaType = MediaType.IMAGE,
                 url = "https://far-galaxy.com",
-                hdUrl = "https://far-galaxy.com/hd",
+                credit = "Far Observatory",
                 thumbnailUrl = null,
                 copyright = "NASA",
-                serviceVersion = "v2.3",
+                sourceUrl = "https://science.nasa.gov/far-galaxy",
             )
         val apod2 =
             TestModels.apod(
@@ -86,10 +86,10 @@ class ApodControllerIntegrationTest {
                 explanation = "Ring of saturn",
                 mediaType = MediaType.OTHER,
                 url = null,
-                hdUrl = null,
+                credit = null,
                 thumbnailUrl = null,
                 copyright = null,
-                serviceVersion = "xx33",
+                sourceUrl = null,
             )
         val apod3 =
             TestModels.apod(
@@ -98,10 +98,10 @@ class ApodControllerIntegrationTest {
                 explanation = "A Giant Exoplanet",
                 mediaType = MediaType.VIDEO,
                 url = "https://exoplanet.xyz",
-                hdUrl = "https://exoplanet.xyz/hd",
+                credit = "Exo Team",
                 thumbnailUrl = "https://exoplanet.xyz/thumb",
                 copyright = "FREE",
-                serviceVersion = "123",
+                sourceUrl = "https://science.nasa.gov/exoplanet",
             )
         val apods = listOf(apod1, apod2, apod3)
         every {
@@ -123,30 +123,30 @@ class ApodControllerIntegrationTest {
                 jsonPath("$[0].explanation") { value("A Galaxy far far away") }
                 jsonPath("$[0].media_type") { value("image") }
                 jsonPath("$[0].url") { value("https://far-galaxy.com") }
-                jsonPath("$[0].hd_url") { value("https://far-galaxy.com/hd") }
+                jsonPath("$[0].credit") { value("Far Observatory") }
                 jsonPath("$[0].thumbnail_url") { value(null) }
                 jsonPath("$[0].copyright") { value("NASA") }
-                jsonPath("$[0].service_version") { value("v2.3") }
+                jsonPath("$[0].source_url") { value("https://science.nasa.gov/far-galaxy") }
                 jsonPath("$[1].date") { value("2020-01-02") }
                 jsonPath("$[1].title") { value("Saturn") }
                 jsonPath("$[1].explanation") { value("Ring of saturn") }
                 jsonPath("$[1].media_type") { value("other") }
                 jsonPath("$[1].url") { value(null) }
-                jsonPath("$[1].hd_url") { value(null) }
+                jsonPath("$[1].credit") { value(null) }
                 jsonPath("$[1].thumbnail_url") { value(null) }
                 jsonPath("$[1].copyright") { value(null) }
-                jsonPath("$[1].service_version") { value("xx33") }
+                jsonPath("$[1].source_url") { value(null) }
                 jsonPath("$[2].date") { value("2020-01-03") }
                 jsonPath("$[2].title") { value("Exoplanet Gas Giant") }
                 jsonPath("$[2].explanation") { value("A Giant Exoplanet") }
                 jsonPath("$[2].media_type") { value("video") }
                 jsonPath("$[2].url") { value("https://exoplanet.xyz") }
-                jsonPath("$[2].hd_url") { value("https://exoplanet.xyz/hd") }
+                jsonPath("$[2].credit") { value("Exo Team") }
                 jsonPath("$[2].thumbnail_url") {
                     value("https://exoplanet.xyz/thumb")
                 }
                 jsonPath("$[2].copyright") { value("FREE") }
-                jsonPath("$[2].service_version") { value("123") }
+                jsonPath("$[2].source_url") { value("https://science.nasa.gov/exoplanet") }
             }
     }
 

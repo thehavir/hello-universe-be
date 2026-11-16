@@ -1,14 +1,17 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
 
-import dev.havir.hellouniverse.TestModels
-import dev.havir.hellouniverse.domain.ApodGateway
-import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
+import dev.havir.hellouniverse.domain.model.Apod
 import dev.havir.hellouniverse.domain.model.MediaType
+import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMedia
+import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMediaExtractor
+import io.mockk.every
+import io.mockk.mockk
+import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.assertNull
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers.anything
 import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
@@ -19,49 +22,38 @@ import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import org.springframework.http.MediaType as HttpMediaType
 
 class NasaApodGatewayTest {
-    lateinit var restClientBuilder: RestClient.Builder
-    lateinit var mockServer: MockRestServiceServer
-    lateinit var tested: ApodGateway
+    private lateinit var nasaApi: MockRestServiceServer
+    private val extractor = mockk<ApodMediaExtractor>()
+    private lateinit var tested: NasaApodGateway
 
     @BeforeEach
     fun setUp() {
-        restClientBuilder = RestClient.builder()
-        mockServer = MockRestServiceServer.bindTo(restClientBuilder).build()
+        val builder = RestClient.builder()
+        nasaApi = MockRestServiceServer.bindTo(builder).build()
+        tested = NasaApodGateway(builder.build(), extractor)
     }
 
     @Test
-    fun `on getApod creates a HTTP GET method`() {
-        mockServer
-            .expect(method(HttpMethod.GET))
-            .andRespond(withStatus(HttpStatus.ACCEPTED))
-        tested = NasaApodGateway(restClientBuilder.build())
-
-        tested.getApod()
-
-        mockServer.verify()
-    }
-
-    @Test
-    fun `on getApod creates uri with correct path`() {
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(withStatus(HttpStatus.ACCEPTED))
-        tested = NasaApodGateway(restClientBuilder.build())
-
-        tested.getApod()
-
-        mockServer.verify()
-    }
-
-    @Test
-    fun `on getApod returns null when API returns empty`() {
-        mockServer
-            .expect(requestTo("/planetary/apod"))
+    fun `on getApod sends GET to the APOD Basic API`() {
+        nasaApi
+            .expect(requestTo(startsWith("/wp-json/wp/v2/apod-basic/")))
+            .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess("", HttpMediaType.APPLICATION_JSON))
-        tested = NasaApodGateway(restClientBuilder.build())
+
+        tested.getApod()
+
+        nasaApi.verify()
+    }
+
+    @Test
+    fun `on getApod returns null when API returns empty body`() {
+        nasaApi
+            .expect(anything())
+            .andRespond(withSuccess("", HttpMediaType.APPLICATION_JSON))
 
         val result = tested.getApod()
 
@@ -69,235 +61,165 @@ class NasaApodGatewayTest {
     }
 
     @Test
-    fun `on getApod throws ApodNotFoundException when API returns placeholder`() {
+    fun `on getApod maps NASA record to Apod`() {
         val json =
-            placeholderJson(
-                explanation = "Discover the cosmos! Each day a different image bla...",
-                url = "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png",
-            )
-        mockServer
-            .expect(requestTo("/planetary/apod"))
+            """
+            {
+                "date": "2026-11-16",
+                "post_id": 123,
+                "title": "Earth &amp; Moon",
+                "permalink": "https://science.nasa.gov/apod/earth-and-moon/",
+                "explanation": "The <b>Moon</b><script>bad()</script> <a href='https://moon.com'>here</a>",
+                "credit": "<a href='https://jane.com'>Jane</a><script>bad()</script>",
+                "copyright": "<b>Jane Doe</b><script>bad()</script>",
+                "media_type": "image",
+                "basic_html": "<img src='https://apod.nasa.gov/moon.jpg'>",
+                "basic_html_url": "https://science.nasa.gov/apod/earth-and-moon/html"
+            }
+            """.trimIndent()
+        nasaApi
+            .expect(anything())
             .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
-        tested = NasaApodGateway(restClientBuilder.build())
-
-        assertFailsWith<ApodNotFoundException> { tested.getApod() }
-    }
-
-    @Test
-    fun `on getApod returns Apod when url is NASA logo but explanation is real`() {
-        val json =
-            placeholderJson(
-                explanation = "A real explanation.",
-                url = "https://science.nasa.gov/wp-content/themes/nasa-child/assets/images/nasa-logo@2x.png",
-            )
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
-        tested = NasaApodGateway(restClientBuilder.build())
-
-        val result = tested.getApod()
-
-        assertEquals("A real explanation.", result?.explanation)
-    }
-
-    @Test
-    fun `on getApod returns Apod when explanation is placeholder but url is real`() {
-        val json =
-            placeholderJson(
-                explanation = "Discover the cosmos! Each day a different image bla...",
-                url = "https://apod.nasa.gov/apod/image/real.jpg",
-            )
-        mockServer
-            .expect(requestTo("/planetary/apod"))
-            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
-        tested = NasaApodGateway(restClientBuilder.build())
+        every {
+            extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
+        } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
         val result = tested.getApod()
 
         assertEquals(
-            "https://apod.nasa.gov/apod/image/real.jpg",
-            result?.url,
-        )
-    }
-
-    @Test
-    fun `on getApod returns Apod`() {
-        val json = """
-    {
-        "date": "2024-01-01",
-        "title": "Test Title",
-        "explanation": "Test explanation",
-        "media_type": "image",
-        "url": "https://test.com",
-        "hdurl": "https://test.com/hd",
-        "thumbnail_url": "https://test.com/thumb",
-        "service_version": "v1"
-    }
-"""
-        mockServer.expect(requestTo("/planetary/apod")).andRespond(
-            withSuccess(
-                json,
-                HttpMediaType.APPLICATION_JSON,
-            ),
-        )
-        tested = NasaApodGateway(restClientBuilder.build())
-
-        val result = tested.getApod()
-
-        assertEquals(
-            TestModels.apod(
-                date = LocalDate.of(2024, 1, 1),
-                title = "Test Title",
-                explanation = "Test explanation",
+            Apod(
+                date = LocalDate.of(2026, 11, 16),
+                title = "Earth & Moon",
+                // explanation, credit and copyright: <script> removed,
+                // rel="nofollow" added to links
+                explanation =
+                    "The <b>Moon</b> " +
+                        "<a href=\"https://moon.com\" rel=\"nofollow\">here</a>",
+                credit =
+                    "<a href=\"https://jane.com\" rel=\"nofollow\">Jane</a>",
+                copyright = "<b>Jane Doe</b>",
+                // media type and url come from the extractor
                 mediaType = MediaType.IMAGE,
-                url = "https://test.com",
-                hdUrl = "https://test.com/hd",
-                thumbnailUrl = "https://test.com/thumb",
-                serviceVersion = "v1",
+                url = "https://apod.nasa.gov/moon.jpg",
+                thumbnailUrl = null,
+                sourceUrl = "https://science.nasa.gov/apod/earth-and-moon/",
             ),
             result,
         )
     }
 
     @Test
-    fun `on getApod returns Apod when media_type is image`() {
-        val json = """
-    {
-        "date": "2024-01-01",
-        "title": "Test Title",
-        "explanation": "Test explanation",
-        "media_type": "image",
-        "service_version": "v1"
-    }
-"""
-        mockServer.expect(requestTo("/planetary/apod")).andRespond(
-            withSuccess(
-                json,
-                HttpMediaType.APPLICATION_JSON,
-            ),
-        )
-        tested = NasaApodGateway(restClientBuilder.build())
+    fun `on getApod returns null credit when NASA credit is null`() {
+        val json =
+            """
+            {
+                "date": "2026-11-16",
+                "post_id": 123,
+                "title": "Moon",
+                "permalink": "https://science.nasa.gov/apod/moon/",
+                "explanation": "The Moon",
+                "credit": null,
+                "copyright": "Jane Doe",
+                "media_type": "image",
+                "basic_html": "<img src='https://apod.nasa.gov/moon.jpg'>",
+                "basic_html_url": "https://science.nasa.gov/apod/moon/html"
+            }
+            """.trimIndent()
+        nasaApi
+            .expect(anything())
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        every {
+            extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
+        } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
         val result = tested.getApod()
 
-        assertEquals(
-            TestModels.apod(
-                date = LocalDate.of(2024, 1, 1),
-                title = "Test Title",
-                explanation = "Test explanation",
-                mediaType = MediaType.IMAGE,
-                serviceVersion = "v1",
-            ),
-            result,
-        )
+        assertNull(result?.credit)
     }
 
     @Test
-    fun `on getApod returns Apod when media_type is video`() {
-        val json = """
-    {
-        "date": "2024-01-01",
-        "title": "Test Title",
-        "explanation": "Test explanation",
-        "media_type": "video",
-        "service_version": "v1"
-    }
-"""
-        mockServer.expect(requestTo("/planetary/apod")).andRespond(
-            withSuccess(
-                json,
-                HttpMediaType.APPLICATION_JSON,
-            ),
-        )
-        tested = NasaApodGateway(restClientBuilder.build())
+    fun `on getApod returns null copyright when NASA copyright is missing`() {
+        // The JSON has no "copyright" field at all
+        val json =
+            """
+            {
+                "date": "2026-11-16",
+                "post_id": 123,
+                "title": "Moon",
+                "permalink": "https://science.nasa.gov/apod/moon/",
+                "explanation": "The Moon",
+                "credit": "Jane Doe",
+                "media_type": "image",
+                "basic_html": "<img src='https://apod.nasa.gov/moon.jpg'>",
+                "basic_html_url": "https://science.nasa.gov/apod/moon/html"
+            }
+            """.trimIndent()
+        nasaApi
+            .expect(anything())
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        every {
+            extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
+        } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
         val result = tested.getApod()
 
-        assertEquals(
-            TestModels.apod(
-                date = LocalDate.of(2024, 1, 1),
-                title = "Test Title",
-                explanation = "Test explanation",
-                mediaType = MediaType.VIDEO,
-                serviceVersion = "v1",
-            ),
-            result,
-        )
+        assertNull(result?.copyright)
     }
 
     @Test
-    fun `on getApod returns Apod when media_type is other`() {
-        val json = """
-    {
-        "date": "2024-01-01",
-        "title": "Test Title",
-        "explanation": "Test explanation",
-        "media_type": "other",
-        "service_version": "v1"
-    }
-"""
-        mockServer.expect(requestTo("/planetary/apod")).andRespond(
-            withSuccess(
-                json,
-                HttpMediaType.APPLICATION_JSON,
-            ),
-        )
-        tested = NasaApodGateway(restClientBuilder.build())
+    fun `on getApod returns null when extractor finds no media`() {
+        val json =
+            """
+            {
+                "date": "2026-11-16",
+                "post_id": 123,
+                "title": "Moon",
+                "permalink": "https://science.nasa.gov/apod/moon/",
+                "explanation": "The Moon",
+                "media_type": "image",
+                "basic_html": "<p>No media here</p>",
+                "basic_html_url": "https://science.nasa.gov/apod/moon/html"
+            }
+            """.trimIndent()
+        nasaApi
+            .expect(anything())
+            .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
+        every { extractor.extract("<p>No media here</p>") } returns null
 
         val result = tested.getApod()
 
-        assertEquals(
-            TestModels.apod(
-                date = LocalDate.of(2024, 1, 1),
-                title = "Test Title",
-                explanation = "Test explanation",
-                mediaType = MediaType.OTHER,
-                serviceVersion = "v1",
-            ),
-            result,
-        )
+        assertNull(result)
     }
 
     @Test
-    fun `on getApod throws when response is not correct`() {
-        val jsonWithoutDate = """
-    {
-        "title": "Test Title",
-        "explanation": "Test explanation",
-        "media_type": "IMAGE",
-        "url": "https://test.com",
-        "service_version": "v1"
-    }
-"""
-        mockServer.expect(requestTo("/planetary/apod")).andRespond(
-            withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON),
-        )
-        tested = NasaApodGateway(restClientBuilder.build())
+    fun `on getApod throws when response has no date`() {
+        val jsonWithoutDate =
+            """
+            {
+                "post_id": 123,
+                "title": "Moon",
+                "permalink": "https://science.nasa.gov/apod/moon/",
+                "explanation": "The Moon",
+                "media_type": "image",
+                "basic_html": "<img src='https://apod.nasa.gov/moon.jpg'>",
+                "basic_html_url": "https://science.nasa.gov/apod/moon/html"
+            }
+            """.trimIndent()
+        nasaApi
+            .expect(anything())
+            .andRespond(
+                withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON),
+            )
 
         assertFailsWith<RestClientException> { tested.getApod() }
     }
 
     @Test
     fun `on getApod throws when API returns error`() {
-        mockServer
-            .expect(requestTo("/planetary/apod"))
+        nasaApi
+            .expect(anything())
             .andRespond(withStatus(HttpStatus.GATEWAY_TIMEOUT))
-        tested = NasaApodGateway(restClientBuilder.build())
 
         assertFailsWith<RestClientException> { tested.getApod() }
     }
-
-    private fun placeholderJson(
-        explanation: String,
-        url: String,
-    ) = """
-        {
-            "date": "2024-01-01",
-            "title": "NASA Science",
-            "explanation": "$explanation",
-            "media_type": "image",
-            "url": "$url",
-            "service_version": "v1"
-        }
-        """.trimIndent()
 }
