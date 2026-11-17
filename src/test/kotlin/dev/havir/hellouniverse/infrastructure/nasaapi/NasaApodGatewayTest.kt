@@ -16,6 +16,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
 import org.springframework.test.web.client.response.MockRestResponseCreators.withStatus
 import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import java.time.LocalDate
@@ -38,15 +39,60 @@ class NasaApodGatewayTest {
     }
 
     @Test
-    fun `on getApod sends GET to the APOD Basic API`() {
+    fun `on getApod sends GET with the yyMMdd date code to the APOD Basic API`() {
         nasaApi
-            .expect(requestTo(startsWith("/wp-json/wp/v2/apod-basic/")))
+            .expect(requestTo(startsWith("/wp-json/wp/v2/apod-basic/261116")))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess("", HttpMediaType.APPLICATION_JSON))
 
-        tested.getApod()
+        tested.getApod(DATE)
 
         nasaApi.verify()
+    }
+
+    @Test
+    fun `on getApod returns null when NASA has not published the APOD yet`() {
+        nasaApi
+            .expect(anything())
+            .andRespond(
+                withStatus(HttpStatus.NOT_FOUND)
+                    .contentType(HttpMediaType.APPLICATION_JSON)
+                    .body(
+                        """{"code":"apod_basic_not_found","message":"APOD not found."}""",
+                    ),
+            )
+
+        val result = tested.getApod(DATE)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `on getApod throws when NASA returns 404 for an unknown route`() {
+        nasaApi
+            .expect(anything())
+            .andRespond(
+                withStatus(HttpStatus.NOT_FOUND)
+                    .contentType(HttpMediaType.APPLICATION_JSON)
+                    .body("""{"code":"rest_no_route"}"""),
+            )
+
+        assertFailsWith<HttpClientErrorException.NotFound> {
+            tested.getApod(DATE)
+        }
+    }
+
+    @Test
+    fun `on getApod throws when NASA returns 404 with a non-JSON body`() {
+        nasaApi
+            .expect(anything())
+            .andRespond(
+                withStatus(HttpStatus.NOT_FOUND)
+                    .contentType(HttpMediaType.TEXT_HTML)
+                    .body("<html>Not Found</html>"),
+            )
+
+        assertFailsWith<RestClientException> { tested.getApod(DATE) }
     }
 
     @Test
@@ -55,7 +101,7 @@ class NasaApodGatewayTest {
             .expect(anything())
             .andRespond(withSuccess("", HttpMediaType.APPLICATION_JSON))
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertNull(result)
     }
@@ -84,7 +130,7 @@ class NasaApodGatewayTest {
             extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
         } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertEquals(
             Apod(
@@ -132,7 +178,7 @@ class NasaApodGatewayTest {
             extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
         } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertNull(result?.credit)
     }
@@ -161,13 +207,13 @@ class NasaApodGatewayTest {
             extractor.extract("<img src='https://apod.nasa.gov/moon.jpg'>")
         } returns ApodMedia(MediaType.IMAGE, "https://apod.nasa.gov/moon.jpg")
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertNull(result?.copyright)
     }
 
     @Test
-    fun `on getApod returns null when extractor finds no media`() {
+    fun `on getApod throws when extractor finds no media`() {
         val json =
             """
             {
@@ -186,9 +232,7 @@ class NasaApodGatewayTest {
             .andRespond(withSuccess(json, HttpMediaType.APPLICATION_JSON))
         every { extractor.extract("<p>No media here</p>") } returns null
 
-        val result = tested.getApod()
-
-        assertNull(result)
+        assertFailsWith<IllegalStateException> { tested.getApod(DATE) }
     }
 
     @Test
@@ -211,7 +255,7 @@ class NasaApodGatewayTest {
                 withSuccess(jsonWithoutDate, HttpMediaType.APPLICATION_JSON),
             )
 
-        assertFailsWith<RestClientException> { tested.getApod() }
+        assertFailsWith<RestClientException> { tested.getApod(DATE) }
     }
 
     @Test
@@ -220,6 +264,10 @@ class NasaApodGatewayTest {
             .expect(anything())
             .andRespond(withStatus(HttpStatus.GATEWAY_TIMEOUT))
 
-        assertFailsWith<RestClientException> { tested.getApod() }
+        assertFailsWith<RestClientException> { tested.getApod(DATE) }
+    }
+
+    private companion object {
+        val DATE: LocalDate = LocalDate.of(2026, 11, 16)
     }
 }

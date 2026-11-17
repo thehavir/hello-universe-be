@@ -3,26 +3,27 @@ package dev.havir.hellouniverse.infrastructure.nasaapi
 import dev.havir.hellouniverse.domain.ApodGateway
 import dev.havir.hellouniverse.domain.model.Apod
 import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaApodDto
+import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaErrorDto
 import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMedia
 import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMediaExtractor
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.safety.Safelist
-import org.slf4j.LoggerFactory
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Component
 class NasaApodGateway(
     private val nasaApiRestClient: RestClient,
     private val apodMediaExtractor: ApodMediaExtractor,
 ) : ApodGateway {
-    private val logger = LoggerFactory.getLogger(NasaApodGateway::class.java)
-
     @Retryable(
         includes = [
             HttpServerErrorException::class, // NASA 5xx
@@ -32,22 +33,23 @@ class NasaApodGateway(
         delayString = $$"${nasa.api.retry.delay:2000}",
         multiplier = 2.0,
     )
-    override fun getApod(): Apod? {
+    override fun getApod(date: LocalDate): Apod? {
         val dto =
-            nasaApiRestClient
-                .get()
-                // Todo: Change this to fetch a list of APODs from today to the
-                //  last APOD that is missing.
-                .uri { it.path("/wp-json/wp/v2/apod-basic/261028").build() }
-                .retrieve()
-                .body<NasaApodDto>() ?: return null
+            try {
+                nasaApiRestClient
+                    .get()
+                    .uri(APOD_PATH, date.format(DATE_CODE))
+                    .retrieve()
+                    .body<NasaApodDto>()
+            } catch (e: HttpClientErrorException.NotFound) {
+                if (e.isApodNotPublished()) null else throw e
+            } ?: return null
 
-        val media = apodMediaExtractor.extract(dto.basicHtml)
-        if (media == null) {
-            logger.error("APOD {}: no media found in basic_html", dto.date)
-        }
+        val media =
+            apodMediaExtractor.extract(dto.basicHtml)
+                ?: error("APOD ${dto.date}: no media found in basic_html")
 
-        return media?.let { dto.toDomain(it) }
+        return dto.toDomain(media)
     }
 
     private fun NasaApodDto.toDomain(media: ApodMedia): Apod =
@@ -74,4 +76,13 @@ class NasaApodGateway(
             Safelist.basic(),
             Document.OutputSettings().prettyPrint(false),
         )
+
+    private fun HttpClientErrorException.isApodNotPublished(): Boolean =
+        getResponseBodyAs(NasaErrorDto::class.java)?.code == APOD_NOT_FOUND
+
+    private companion object {
+        const val APOD_PATH = "/wp-json/wp/v2/apod-basic/{code}"
+        const val APOD_NOT_FOUND = "apod_basic_not_found"
+        val DATE_CODE: DateTimeFormatter = DateTimeFormatter.ofPattern("yyMMdd")
+    }
 }

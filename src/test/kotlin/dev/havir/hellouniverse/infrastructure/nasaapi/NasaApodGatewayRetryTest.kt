@@ -62,7 +62,7 @@ class NasaApodGatewayRetryTest {
             .expect(requestTo(startsWith(APOD_PATH)))
             .andRespond(withSuccess(APOD_JSON, MediaType.APPLICATION_JSON))
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertEquals(LocalDate.of(2024, 1, 1), result?.date)
         server.verify()
@@ -74,7 +74,7 @@ class NasaApodGatewayRetryTest {
             .expect(ExpectedCount.times(4), requestTo(startsWith(APOD_PATH)))
             .andRespond(withServerError())
 
-        assertThrows<HttpServerErrorException> { tested.getApod() }
+        assertThrows<HttpServerErrorException> { tested.getApod(DATE) }
         server.verify()
     }
 
@@ -84,12 +84,13 @@ class NasaApodGatewayRetryTest {
             .expect(ExpectedCount.once(), requestTo(startsWith(APOD_PATH)))
             .andRespond(withBadRequest())
 
-        assertThrows<HttpClientErrorException> { tested.getApod() }
+        assertThrows<HttpClientErrorException> { tested.getApod(DATE) }
         server.verify()
     }
 
     private companion object {
-        const val APOD_PATH = "/wp-json/wp/v2/apod-basic"
+        const val APOD_PATH = "/wp-json/wp/v2/apod-basic/240101"
+        val DATE: LocalDate = LocalDate.of(2024, 1, 1)
         val APOD_JSON =
             """
             {

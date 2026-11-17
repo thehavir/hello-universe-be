@@ -2,7 +2,6 @@ package dev.havir.hellouniverse.application.usecase
 
 import dev.havir.hellouniverse.domain.ApodGateway
 import dev.havir.hellouniverse.domain.ApodRepository
-import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -15,25 +14,15 @@ class FetchTodayApodUseCase(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun execute() {
-        // Todo: Change this to fetch a list of APODs from today to the
-        //  last APOD that is missing.
         val today = LocalDate.now(clock)
         if (apodRepository.existsByDate(today)) {
             logger.debug("APOD for {} is already stored", today)
             return
         }
 
-        val apod =
-            apodGateway.getApod() ?: throw ApodNotFoundException(
-                "APOD not found for date: $today",
-            )
-
-        if (apod.date != today) {
-            logger.info(
-                "NASA has not published the APOD for {} yet (got {})",
-                today,
-                apod.date,
-            )
+        val apod = apodGateway.getApod(today)
+        if (apod == null) {
+            logger.info("APOD for {} is not published yet", today)
             return
         }
 
