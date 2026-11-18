@@ -29,8 +29,7 @@ management:
 # NASA API configuration
 nasa:
   api:
-    base-url: https://api.nasa.gov
-    api-key: ${NASA_API_KEY}
+    base-url: https://science.nasa.gov
     connect-timeout: 5s
     read-timeout: 15s
 
@@ -39,4 +38,3 @@ scheduler:
   fetch-apod:
     # every hour
     cron: "0 0 * * * *"
-

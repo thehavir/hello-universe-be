@@ -15,8 +15,6 @@ export SPRING_PROFILES_ACTIVE=prod
 export DB_URL="${DB_URL:-jdbc:postgresql://127.0.0.1:5432/hellouniverse_db}"
 export DB_USERNAME="${DB_USERNAME:-hellouniverse_db_user}"
 export DB_PASSWORD="${DB_PASSWORD:-}"
-# The scheduled NASA fetch is turned off below, so no real key is needed
-export NASA_API_KEY=pgo-recording
 
 ./mvnw -B -ntp -Pnative -Dpgo.option=--pgo-instrument -DskipTests clean native:compile
 

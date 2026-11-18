@@ -3,7 +3,6 @@ package dev.havir.hellouniverse.application.usecase
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.domain.ApodGateway
 import dev.havir.hellouniverse.domain.ApodRepository
-import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
 import dev.havir.hellouniverse.domain.model.MediaType
 import io.mockk.called
 import io.mockk.every
@@ -82,11 +81,11 @@ class FetchTodayApodUseCaseTest {
         val apod = TestModels.apod(date = today)
         every { apodRepository.existsByDate(today) } returns false
         every { apodRepository.save(apod) } returns apod
-        every { apodGateway.getApod() } returns apod
+        every { apodGateway.getApod(today) } returns apod
 
         tested.execute()
 
-        verify { apodGateway.getApod() }
+        verify { apodGateway.getApod(today) }
     }
 
     @Test
@@ -104,7 +103,7 @@ class FetchTodayApodUseCaseTest {
                 "xyz",
             )
         every { apodRepository.existsByDate(today) } returns false
-        every { apodGateway.getApod() } returns apod
+        every { apodGateway.getApod(today) } returns apod
         every { apodRepository.save(apod) } returns apod
 
         tested.execute()
@@ -113,10 +112,9 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute does not save when ApodGateway returns Apod for another date`() {
-        val yesterdayApod = TestModels.apod(date = today.minusDays(1))
+    fun `on execute does not save when ApodGateway returns null`() {
         every { apodRepository.existsByDate(today) } returns false
-        every { apodGateway.getApod() } returns yesterdayApod
+        every { apodGateway.getApod(today) } returns null
 
         tested.execute()
 
@@ -124,18 +122,9 @@ class FetchTodayApodUseCaseTest {
     }
 
     @Test
-    fun `on execute throw ApodNotFoundException when ApodGateway returns null`() {
-        every { apodRepository.existsByDate(today) } returns false
-        every { apodGateway.getApod() } returns null
-
-        assertThrows<ApodNotFoundException> { tested.execute() }
-        verify(exactly = 0) { apodRepository.save(any()) }
-    }
-
-    @Test
     fun `on execute re-throw when ApodGateway throws`() {
         every { apodRepository.existsByDate(today) } returns false
-        every { apodGateway.getApod() } throws NullPointerException()
+        every { apodGateway.getApod(today) } throws NullPointerException()
 
         assertThrows<NullPointerException> { tested.execute() }
         verify(exactly = 0) { apodRepository.save(any()) }

@@ -1,6 +1,8 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
 
 import dev.havir.hellouniverse.domain.ApodGateway
+import dev.havir.hellouniverse.infrastructure.nasaapi.media.JsoupApodMediaExtractor
+import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -37,7 +39,7 @@ class NasaApodGatewayRetryTest {
         fun server(): MockRestServiceServer = MockRestServiceServer.bindTo(builder).build()
 
         @Bean
-        fun gateway(): ApodGateway = NasaApodGateway(builder.build())
+        fun gateway(): ApodGateway = NasaApodGateway(builder.build(), JsoupApodMediaExtractor())
     }
 
     @Autowired
@@ -54,13 +56,13 @@ class NasaApodGatewayRetryTest {
     @Test
     fun `on getApod retries server errors and returns Apod`() {
         server
-            .expect(ExpectedCount.times(2), requestTo(APOD_PATH))
+            .expect(ExpectedCount.times(2), requestTo(startsWith(APOD_PATH)))
             .andRespond(withServerError())
         server
-            .expect(requestTo(APOD_PATH))
+            .expect(requestTo(startsWith(APOD_PATH)))
             .andRespond(withSuccess(APOD_JSON, MediaType.APPLICATION_JSON))
 
-        val result = tested.getApod()
+        val result = tested.getApod(DATE)
 
         assertEquals(LocalDate.of(2024, 1, 1), result?.date)
         server.verify()
@@ -69,34 +71,37 @@ class NasaApodGatewayRetryTest {
     @Test
     fun `on getApod throws after max retries on server errors`() {
         server
-            .expect(ExpectedCount.times(4), requestTo(APOD_PATH))
+            .expect(ExpectedCount.times(4), requestTo(startsWith(APOD_PATH)))
             .andRespond(withServerError())
 
-        assertThrows<HttpServerErrorException> { tested.getApod() }
+        assertThrows<HttpServerErrorException> { tested.getApod(DATE) }
         server.verify()
     }
 
     @Test
     fun `on getApod does not retry client errors`() {
         server
-            .expect(ExpectedCount.once(), requestTo(APOD_PATH))
+            .expect(ExpectedCount.once(), requestTo(startsWith(APOD_PATH)))
             .andRespond(withBadRequest())
 
-        assertThrows<HttpClientErrorException> { tested.getApod() }
+        assertThrows<HttpClientErrorException> { tested.getApod(DATE) }
         server.verify()
     }
 
     private companion object {
-        const val APOD_PATH = "/planetary/apod"
+        const val APOD_PATH = "/wp-json/wp/v2/apod-basic/240101"
+        val DATE: LocalDate = LocalDate.of(2024, 1, 1)
         val APOD_JSON =
             """
             {
                 "date": "2024-01-01",
+                "post_id": 1,
                 "title": "Test Title",
+                "permalink": "https://science.nasa.gov/apod/test/",
                 "explanation": "Test explanation",
                 "media_type": "image",
-                "url": "https://test.com/image",
-                "service_version": "v1"
+                "basic_html": "<img src='https://test.com/image.jpg'>",
+                "basic_html_url": "https://science.nasa.gov/apod/test/html"
             }
             """.trimIndent()
     }

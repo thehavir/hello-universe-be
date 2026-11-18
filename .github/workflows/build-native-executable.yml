@@ -41,7 +41,6 @@ jobs:
       DB_URL: jdbc:postgresql://127.0.0.1:5432/smoke_test
       DB_USERNAME: smoke_test
       DB_PASSWORD: smoke-test-only-password
-      NASA_API_KEY: ci-placeholder
     services:
       postgres:
         # Images are pinned by digest like the actions. Update them by hand.

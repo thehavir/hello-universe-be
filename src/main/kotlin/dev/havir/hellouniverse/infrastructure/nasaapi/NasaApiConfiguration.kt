@@ -1,6 +1,7 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
 
 import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaApodDto
+import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaErrorDto
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -15,23 +16,16 @@ import java.net.http.HttpClient
 // not on the ApodGateway interface, so an interface proxy would skip retries
 @EnableResilientMethods(proxyTargetClass = true)
 @EnableConfigurationProperties(NasaApiProperties::class)
-@RegisterReflectionForBinding(NasaApodDto::class)
+@RegisterReflectionForBinding(NasaApodDto::class, NasaErrorDto::class)
 class NasaApiConfiguration(
     private val nasaApiProperties: NasaApiProperties,
 ) {
     @Bean
-    fun nasaApiInterceptor(): NasaApiKeyInterceptor =
-        NasaApiKeyInterceptor(nasaApiProperties.apiKey)
-
-    @Bean
-    fun nasaApiRestClient(
-        nasaApiKeyInterceptor: NasaApiKeyInterceptor,
-    ): RestClient =
+    fun nasaApiRestClient(): RestClient =
         RestClient
             .builder()
             .baseUrl(nasaApiProperties.baseUrl)
             .requestFactory(nasaApiRequestFactory())
-            .requestInterceptor(nasaApiKeyInterceptor)
             .build()
 
     private fun nasaApiRequestFactory(): JdkClientHttpRequestFactory {

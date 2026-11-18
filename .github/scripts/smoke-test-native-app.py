@@ -27,17 +27,25 @@ def request(url, payload=None, timeout=3):
 def main():
     if os.environ.get("DB_URL") != "jdbc:postgresql://127.0.0.1:5432/smoke_test":
         raise RuntimeError("DB_URL must point to the temporary smoke_test database.")
-    today = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
-    expected = {"date": today, "title": "CI astronomy fixture", "media_type": "image"}
+    today = datetime.now(ZoneInfo("America/New_York")).date()
+    apod_path = f"/wp-json/wp/v2/apod-basic/{today:%y%m%d}"
+    image_url = "https://example.invalid/image.jpg"
+    permalink = "https://example.invalid/apod/ci-astronomy-fixture/"
+    expected = {
+        "date": today.isoformat(), "title": "CI astronomy fixture", "media_type": "image",
+        "url": image_url, "source_url": permalink,
+    }
     request(f"{NASA_MOCK_URL}/__admin/mappings", {
-        "request": {"method": "GET", "urlPath": "/planetary/apod"},
+        "request": {"method": "GET", "url": apod_path},
         "response": {
             "status": 200,
             "headers": {"Content-Type": "application/json"},
             "jsonBody": {
-                **expected, "explanation": "Smoke-test fixture.",
-                "url": "https://example.invalid/image.jpg", "hdurl": None,
-                "thumbnail_url": None, "copyright": None, "service_version": "v1",
+                "date": today.isoformat(), "post_id": 1, "title": "CI astronomy fixture",
+                "permalink": permalink, "explanation": "Smoke-test fixture.",
+                "media_type": "image", "url": permalink,
+                "basic_html": f'<html><body><img src="{image_url}"></body></html>',
+                "basic_html_url": f"{NASA_MOCK_URL}{apod_path}/html",
             },
         },
     })

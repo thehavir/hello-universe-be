@@ -1,21 +1,28 @@
 package dev.havir.hellouniverse.infrastructure.nasaapi
 
 import dev.havir.hellouniverse.domain.ApodGateway
-import dev.havir.hellouniverse.domain.exception.ApodNotFoundException
 import dev.havir.hellouniverse.domain.model.Apod
-import dev.havir.hellouniverse.domain.model.MediaType
 import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaApodDto
-import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaMediaTypeDto
+import dev.havir.hellouniverse.infrastructure.nasaapi.dto.NasaErrorDto
+import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMedia
+import dev.havir.hellouniverse.infrastructure.nasaapi.media.ApodMediaExtractor
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.safety.Safelist
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Component
 class NasaApodGateway(
     private val nasaApiRestClient: RestClient,
+    private val apodMediaExtractor: ApodMediaExtractor,
 ) : ApodGateway {
     @Retryable(
         includes = [
@@ -23,59 +30,59 @@ class NasaApodGateway(
             ResourceAccessException::class, // connection errors and timeouts
         ],
         maxRetries = 3,
-        delayString = "\${nasa.api.retry.delay:2000}",
+        delayString = $$"${nasa.api.retry.delay:2000}",
         multiplier = 2.0,
     )
-    override fun getApod(): Apod? {
+    override fun getApod(date: LocalDate): Apod? {
         val dto =
-            nasaApiRestClient
-                .get()
-                .uri { it.path("/planetary/apod").build() }
-                .retrieve()
-                .body<NasaApodDto>() ?: return null
+            try {
+                nasaApiRestClient
+                    .get()
+                    .uri(APOD_PATH, date.format(DATE_CODE))
+                    .retrieve()
+                    .body<NasaApodDto>()
+            } catch (e: HttpClientErrorException.NotFound) {
+                if (e.isApodNotPublished()) null else throw e
+            } ?: return null
 
-        // Thrown, not returned as null, so the scheduler logs one error with
-        // the real reason. Not in @Retryable's includes, so it isn't retried.
-        if (dto.isPlaceholder()) {
-            throw ApodNotFoundException(
-                "NASA returned a placeholder for ${dto.date}",
-            )
-        }
-        return dto.toDomain()
+        val media =
+            apodMediaExtractor.extract(dto.basicHtml)
+                ?: error("APOD ${dto.date}: no media found in basic_html")
+
+        return dto.toDomain(media)
     }
 
-    // Since APOD moved to science.nasa.gov, the API sometimes returns the
-    // site's generic page (NASA logo + APOD's own description) instead of the
-    // APOD
-    private fun NasaApodDto.isPlaceholder(): Boolean =
-        url == PLACEHOLDER_URL &&
-            explanation.startsWith(
-                "Discover the cosmos! Each day a different image",
-            )
-
-    private companion object {
-        const val PLACEHOLDER_URL =
-            "https://science.nasa.gov/wp-content/themes/" +
-                "nasa-child/assets/images/nasa-logo@2x.png"
-    }
-
-    private fun NasaApodDto.toDomain(): Apod =
+    private fun NasaApodDto.toDomain(media: ApodMedia): Apod =
         Apod(
             date = date,
-            title = title,
-            explanation = explanation,
-            mediaType = mediaType.toDomain(),
-            url = url,
-            hdUrl = hdUrl,
-            thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            title = Jsoup.parseBodyFragment(title).text(),
+            explanation = sanitizeHtml(explanation, permalink),
+            credit = credit?.let { sanitizeHtml(it, permalink) },
+            copyright = copyright?.let { sanitizeHtml(it, permalink) },
+            mediaType = media.type,
+            url = media.url,
+            // Todo: calculate the correct value
+            thumbnailUrl = null,
+            sourceUrl = permalink,
         )
 
-    private fun NasaMediaTypeDto.toDomain(): MediaType =
-        when (this) {
-            NasaMediaTypeDto.IMAGE -> MediaType.IMAGE
-            NasaMediaTypeDto.VIDEO -> MediaType.VIDEO
-            NasaMediaTypeDto.OTHER -> MediaType.OTHER
-        }
+    private fun sanitizeHtml(
+        html: String,
+        baseUri: String,
+    ): String =
+        Jsoup.clean(
+            html,
+            baseUri,
+            Safelist.basic(),
+            Document.OutputSettings().prettyPrint(false),
+        )
+
+    private fun HttpClientErrorException.isApodNotPublished(): Boolean =
+        getResponseBodyAs(NasaErrorDto::class.java)?.code == APOD_NOT_FOUND
+
+    private companion object {
+        const val APOD_PATH = "/wp-json/wp/v2/apod-basic/{code}"
+        const val APOD_NOT_FOUND = "apod_basic_not_found"
+        val DATE_CODE: DateTimeFormatter = DateTimeFormatter.ofPattern("yyMMdd")
+    }
 }
