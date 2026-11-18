@@ -14,22 +14,22 @@ object TestModels {
         title: String = "title",
         explanation: String = "explanation",
         mediaType: MediaType = MediaType.IMAGE,
-        url: String? = null,
-        hdUrl: String? = null,
-        thumbnailUrl: String? = null,
+        credit: String? = null,
         copyright: String? = null,
-        serviceVersion: String = "serviceVersion",
+        url: String? = null,
+        thumbnailUrl: String? = null,
+        sourceUrl: String? = null,
     ): Apod =
         Apod(
             date = date,
             title = title,
             explanation = explanation,
+            credit = credit,
+            copyright = copyright,
             mediaType = mediaType,
             url = url,
-            hdUrl = hdUrl,
             thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            sourceUrl = sourceUrl,
         )
 
     fun apodEntity(
@@ -37,22 +37,22 @@ object TestModels {
         title: String = "title",
         explanation: String = "explanation",
         mediaType: MediaTypeEntity = MediaTypeEntity.IMAGE,
-        url: String? = null,
-        hdUrl: String? = null,
-        thumbnailUrl: String? = null,
+        credit: String? = null,
         copyright: String? = null,
-        serviceVersion: String = "serviceVersion",
+        url: String? = null,
+        thumbnailUrl: String? = null,
+        sourceUrl: String? = null,
     ): ApodEntity =
         ApodEntity(
             date = date,
             title = title,
             explanation = explanation,
+            credit = credit,
+            copyright = copyright,
             mediaType = mediaType,
             url = url,
-            hdUrl = hdUrl,
             thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            sourceUrl = sourceUrl,
         )
 
     fun apodResponse(
@@ -60,21 +60,21 @@ object TestModels {
         title: String = "title",
         explanation: String = "explanation",
         mediaType: MediaTypeResponse = MediaTypeResponse.IMAGE,
-        url: String? = null,
-        hdUrl: String? = null,
-        thumbnailUrl: String? = null,
+        credit: String? = null,
         copyright: String? = null,
-        serviceVersion: String = "serviceVersion",
+        url: String? = null,
+        thumbnailUrl: String? = null,
+        sourceUrl: String? = null,
     ): ApodResponse =
         ApodResponse(
             date = date,
             title = title,
             explanation = explanation,
+            credit = credit,
+            copyright = copyright,
             mediaType = mediaType,
             url = url,
-            hdUrl = hdUrl,
             thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            sourceUrl = sourceUrl,
         )
 }

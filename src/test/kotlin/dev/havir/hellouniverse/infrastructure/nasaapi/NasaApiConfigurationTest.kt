@@ -25,7 +25,7 @@ class NasaApiConfigurationTest {
     fun setUp() {
         server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         // Handler for this URL: Records the request and answers right away
-        server.createContext("/planetary/apod") { exchange ->
+        server.createContext(APOD_PATH) { exchange ->
             receivedUri = exchange.requestURI
             val body = RESPONSE_BODY.toByteArray()
             exchange.sendResponseHeaders(200, body.size.toLong())
@@ -46,53 +46,27 @@ class NasaApiConfigurationTest {
     }
 
     private fun restClient(
-        apiKey: String = "key",
         readTimeout: Duration = Duration.ofSeconds(5),
     ): RestClient {
         val configuration =
             NasaApiConfiguration(
                 NasaApiProperties(
                     baseUrl = "http://127.0.0.1:${server.address.port}",
-                    apiKey = apiKey,
                     readTimeout = readTimeout,
                 ),
             )
-        return configuration.nasaApiRestClient(
-            configuration.nasaApiInterceptor(),
-        )
+        return configuration.nasaApiRestClient()
     }
 
     @Test
-    fun `on nasaApiRestClient request is sent to the path under the configured base-url`() {
+    fun `on nasaApiRestClient sends the exact requested URI`() {
         restClient()
             .get()
-            .uri("/planetary/apod")
+            .uri(APOD_PATH)
             .retrieve()
             .toBodilessEntity()
 
-        assertEquals("/planetary/apod", receivedUri?.path)
-    }
-
-    @Test
-    fun `on nasaApiRestClient request has the configured api_key query param`() {
-        restClient(apiKey = "api-key-xyz-213")
-            .get()
-            .uri("/planetary/apod")
-            .retrieve()
-            .toBodilessEntity()
-
-        assertEquals("api_key=api-key-xyz-213", receivedUri?.query)
-    }
-
-    @Test
-    fun `on nasaApiRestClient request keeps its own query params next to api_key`() {
-        restClient(apiKey = "key")
-            .get()
-            .uri("/planetary/apod?thumbs=true")
-            .retrieve()
-            .toBodilessEntity()
-
-        assertEquals("thumbs=true&api_key=key", receivedUri?.query)
+        assertEquals(URI.create(APOD_PATH), receivedUri)
     }
 
     @Test
@@ -100,7 +74,7 @@ class NasaApiConfigurationTest {
         val result =
             restClient()
                 .get()
-                .uri("/planetary/apod")
+                .uri(APOD_PATH)
                 .retrieve()
                 .body<String>()
 
@@ -125,6 +99,7 @@ class NasaApiConfigurationTest {
     }
 
     companion object {
+        private const val APOD_PATH = "/wp-json/wp/v2/apod-basic/261116"
         private const val SERVER_HOLD_SECONDS = 10L
         private const val RESPONSE_BODY = """{"title":"M83"}"""
     }

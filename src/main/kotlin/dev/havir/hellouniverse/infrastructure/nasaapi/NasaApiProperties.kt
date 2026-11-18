@@ -6,7 +6,6 @@ import java.time.Duration
 @ConfigurationProperties(prefix = "nasa.api")
 data class NasaApiProperties(
     val baseUrl: String,
-    val apiKey: String,
     val connectTimeout: Duration = DEFAULT_CONNECT_TIMEOUT,
     val readTimeout: Duration = DEFAULT_READ_TIMEOUT,
 ) {

@@ -37,12 +37,12 @@ class JpaApodRepository(
             date = date,
             title = title,
             explanation = explanation,
+            credit = credit,
+            copyright = copyright,
             mediaType = mediaType.toEntity(),
             url = url,
-            hdUrl = hdUrl,
             thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            sourceUrl = sourceUrl,
         )
 
     private fun ApodEntity.toDomain(): Apod =
@@ -50,18 +50,19 @@ class JpaApodRepository(
             date = date,
             title = title,
             explanation = explanation,
+            credit = credit,
+            copyright = copyright,
             mediaType = mediaType.toDomain(),
             url = url,
-            hdUrl = hdUrl,
             thumbnailUrl = thumbnailUrl,
-            copyright = copyright,
-            serviceVersion = serviceVersion,
+            sourceUrl = sourceUrl,
         )
 
     private fun MediaTypeEntity.toDomain(): MediaType =
         when (this) {
             MediaTypeEntity.IMAGE -> MediaType.IMAGE
             MediaTypeEntity.VIDEO -> MediaType.VIDEO
+            MediaTypeEntity.WEB_APP -> MediaType.WEB_APP
             MediaTypeEntity.OTHER -> MediaType.OTHER
         }
 
@@ -69,6 +70,7 @@ class JpaApodRepository(
         when (this) {
             MediaType.IMAGE -> MediaTypeEntity.IMAGE
             MediaType.VIDEO -> MediaTypeEntity.VIDEO
+            MediaType.WEB_APP -> MediaTypeEntity.WEB_APP
             MediaType.OTHER -> MediaTypeEntity.OTHER
         }
 }
