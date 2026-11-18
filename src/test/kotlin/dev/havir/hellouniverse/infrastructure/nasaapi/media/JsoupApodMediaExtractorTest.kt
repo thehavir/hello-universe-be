@@ -3,6 +3,7 @@ package dev.havir.hellouniverse.infrastructure.nasaapi.media
 import dev.havir.hellouniverse.domain.model.MediaType
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 /**
@@ -151,6 +152,21 @@ class JsoupApodMediaExtractorTest {
     @Test
     fun `on extract returns null for empty html`() {
         assertNull(tested.extract(""))
+    }
+
+    // No real APOD has a relative media URL, so these use made-up html
+    @Test
+    fun `on extract throws for a relative image url`() {
+        assertFailsWith<IllegalStateException> {
+            tested.extract("<img src='/images/moon.jpg'>")
+        }
+    }
+
+    @Test
+    fun `on extract throws for a relative iframe url`() {
+        assertFailsWith<IllegalStateException> {
+            tested.extract("<iframe src='/embed/moon'></iframe>")
+        }
     }
 
     private fun extract(date: String): ApodMedia? {

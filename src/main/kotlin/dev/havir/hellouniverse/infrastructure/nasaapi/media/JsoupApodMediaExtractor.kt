@@ -16,13 +16,15 @@ import java.net.URI
  *   `http://` or `//`.
  *
  * 33 documents contain none of these, so [extract] returns null for them.
+ * No document uses a relative URL, so [extract] throws if it finds one
+ * rather than guessing which host it belongs to.
  */
 @Component
 class JsoupApodMediaExtractor : ApodMediaExtractor {
     override fun extract(html: String): ApodMedia? {
         val element =
             Jsoup.parse(html).body().selectFirst(MEDIA_SELECTOR) ?: return null
-        val url = withScheme(element.attr("src"))
+        val url = absoluteUrl(element.attr("src"))
 
         val type =
             when (element.normalName()) {
@@ -34,8 +36,13 @@ class JsoupApodMediaExtractor : ApodMediaExtractor {
         return ApodMedia(type, url)
     }
 
-    private fun withScheme(url: String): String =
-        if (url.startsWith("//")) "https:$url" else url
+    private fun absoluteUrl(src: String): String {
+        val url = if (src.startsWith("//")) "https:$src" else src
+        check(url.startsWith("https://") || url.startsWith("http://")) {
+            "APOD media URL is not absolute: $src"
+        }
+        return url
+    }
 
     private fun iframeType(url: String): MediaType {
         // Old Flash players

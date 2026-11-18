@@ -67,10 +67,11 @@ data class NasaApodDto(
     /**
      * Complete APOD Basic HTML document, including media, explanation,
      * credits, and navigation. The primary media can appear in `img`,
-     * `video`/`source`, or `iframe` elements. URLs in the document may be
-     * relative (like /images/moon.jpg) or protocol-relative (like
-     * //www.youtube.com/embed/ABC). Links in the explanation can refer to
-     * supporting material rather than the featured media.
+     * `video`/`source`, or `iframe` elements. Media URLs are absolute
+     * (`https://`, sometimes `http://` for an iframe) or protocol-relative
+     * (like //www.youtube.com/embed/ABC); none are relative. Links in the
+     * explanation can be relative and can refer to supporting material
+     * rather than the featured media.
      */
     @JsonProperty("basic_html") val basicHtml: String,
     /**
