@@ -30,7 +30,6 @@ management:
 nasa:
   api:
     base-url: https://science.nasa.gov
-    api-key: ${NASA_API_KEY}
     connect-timeout: 5s
     read-timeout: 15s
 

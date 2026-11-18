@@ -1,6 +1,6 @@
 # Hello Universe - BE
 
-A Spring Boot application functioning as a proxy for the [NASA Astronomy Picture of the Day (APOD) API](https://api.nasa.gov/). It includes full archive caching with an enhanced and curated dataset, including generated missing thumbnails for videos and other improvements.
+A Spring Boot application functioning as a proxy for the [NASA Astronomy Picture of the Day (APOD) Basic API](https://science.nasa.gov/wp-json/wp/v2/apod-basic). It includes full archive caching with an enhanced and curated dataset, including generated missing thumbnails for videos and other improvements.
 
 ## Technical Overview
 
@@ -79,7 +79,6 @@ Health check for deployment and monitoring. Includes a database check.
 
 | Variable                 | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
-| `NASA_API_KEY`           | Your NASA API key (get one at api.nasa.gov)                                 |
 | `SPRING_PROFILES_ACTIVE` | `dev` or `prod`. There is no default profile                                |
 | `DB_URL`                 | JDBC URL, e.g. `jdbc:postgresql://127.0.0.1:5432/hellouniverse_db` (prod)   |
 | `DB_USERNAME`            | PostgreSQL user, e.g. `hellouniverse_db_user` (prod)                        |
@@ -143,13 +142,12 @@ DROP DATABASE hellouniverse_db;
 
 ```bash
 # dev profile uses H2 in-memory database — no external setup needed
-NASA_API_KEY='your_nasa_api_key' ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
 # prod profile connects to PostgreSQL
 DB_URL='jdbc:postgresql://127.0.0.1:5432/hellouniverse_db' \
 DB_USERNAME='hellouniverse_db_user' \
 DB_PASSWORD='your_db_password' \
-NASA_API_KEY='your_nasa_api_key' \
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 

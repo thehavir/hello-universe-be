@@ -51,7 +51,6 @@ jobs:
       - name: Run tests, the formatting check, and Kotlin analysis
         env:
           SPRING_PROFILES_ACTIVE: dev
-          NASA_API_KEY: ci-placeholder
         run: >-
           sh ./mvnw --batch-mode --no-transfer-progress
           -Dkotlin.compiler.daemon=false -Dscheduler.fetch-apod.cron=- clean verify

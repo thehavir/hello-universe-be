@@ -15,30 +15,16 @@ class NasaApiPropertiesTest {
             .get()
 
     @Test
-    fun `on bind reads base-url and api-key from config`() {
-        val result =
-            bind(
-                mapOf(
-                    "nasa.api.base-url" to "https://abc.com",
-                    "nasa.api.api-key" to "api-key-xyz-213!",
-                ),
-            )
+    fun `on bind reads base-url from config`() {
+        val result = bind(mapOf("nasa.api.base-url" to "https://abc.com"))
 
         assertEquals("https://abc.com", result.baseUrl)
-        assertEquals("api-key-xyz-213!", result.apiKey)
     }
 
     @Test
     fun `on bind fails when base-url is missing`() {
         assertFailsWith<BindException> {
-            bind(mapOf("nasa.api.api-key" to "key"))
-        }
-    }
-
-    @Test
-    fun `on bind fails when api-key is missing`() {
-        assertFailsWith<BindException> {
-            bind(mapOf("nasa.api.base-url" to "https://abc.com"))
+            bind(mapOf("nasa.api.read-timeout" to "500ms"))
         }
     }
 
@@ -48,7 +34,6 @@ class NasaApiPropertiesTest {
             bind(
                 mapOf(
                     "nasa.api.base-url" to "https://abc.com",
-                    "nasa.api.api-key" to "key",
                     "nasa.api.connect-timeout" to "2s",
                     "nasa.api.read-timeout" to "500ms",
                 ),
@@ -60,13 +45,7 @@ class NasaApiPropertiesTest {
 
     @Test
     fun `on bind uses default timeouts when they are not configured`() {
-        val result =
-            bind(
-                mapOf(
-                    "nasa.api.base-url" to "https://abc.com",
-                    "nasa.api.api-key" to "key",
-                ),
-            )
+        val result = bind(mapOf("nasa.api.base-url" to "https://abc.com"))
 
         assertEquals(Duration.ofSeconds(5), result.connectTimeout)
         assertEquals(Duration.ofSeconds(15), result.readTimeout)

@@ -21,18 +21,11 @@ class NasaApiConfiguration(
     private val nasaApiProperties: NasaApiProperties,
 ) {
     @Bean
-    fun nasaApiInterceptor(): NasaApiKeyInterceptor =
-        NasaApiKeyInterceptor(nasaApiProperties.apiKey)
-
-    @Bean
-    fun nasaApiRestClient(
-        nasaApiKeyInterceptor: NasaApiKeyInterceptor,
-    ): RestClient =
+    fun nasaApiRestClient(): RestClient =
         RestClient
             .builder()
             .baseUrl(nasaApiProperties.baseUrl)
             .requestFactory(nasaApiRequestFactory())
-            .requestInterceptor(nasaApiKeyInterceptor)
             .build()
 
     private fun nasaApiRequestFactory(): JdkClientHttpRequestFactory {
