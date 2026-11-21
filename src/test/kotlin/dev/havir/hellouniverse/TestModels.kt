@@ -2,6 +2,7 @@ package dev.havir.hellouniverse
 
 import dev.havir.hellouniverse.domain.model.Apod
 import dev.havir.hellouniverse.domain.model.ApodThumbnail
+import dev.havir.hellouniverse.domain.model.ApodWithThumbnail
 import dev.havir.hellouniverse.domain.model.MediaType
 import dev.havir.hellouniverse.infrastructure.persistence.entity.ApodEntity
 import dev.havir.hellouniverse.infrastructure.persistence.entity.ApodThumbnailEntity
@@ -12,6 +13,11 @@ import java.time.Instant
 import java.time.LocalDate
 
 object TestModels {
+    fun apodWithThumbnail(
+        apod: Apod = apod(),
+        thumbnail: ApodThumbnail? = null,
+    ): ApodWithThumbnail = ApodWithThumbnail(apod = apod, thumbnail = thumbnail)
+
     fun apodThumbnail(
         date: LocalDate = LocalDate.of(1970, 1, 1),
         generatedAt: Instant = Instant.EPOCH,

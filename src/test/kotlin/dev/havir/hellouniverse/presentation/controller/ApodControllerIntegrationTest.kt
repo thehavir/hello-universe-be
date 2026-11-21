@@ -47,7 +47,7 @@ class ApodControllerIntegrationTest {
                 startDate = startDate,
                 endDate = endDate,
             )
-        } returns apods
+        } returns apods.map { TestModels.apodWithThumbnail(it) }
 
         mockMvc
             .get("/apods") {
@@ -106,7 +106,7 @@ class ApodControllerIntegrationTest {
                 startDate = startDate,
                 endDate = endDate,
             )
-        } returns apods
+        } returns apods.map { TestModels.apodWithThumbnail(it) }
 
         mockMvc
             .get("/apods") {

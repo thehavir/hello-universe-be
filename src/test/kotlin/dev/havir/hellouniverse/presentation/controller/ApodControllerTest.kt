@@ -22,7 +22,11 @@ class ApodControllerTest {
 
     @Test
     fun `on getApods calls execute on GetApodsUseCase with startDate and endDate`() {
-        val apods = listOf(TestModels.apod(), TestModels.apod())
+        val apods =
+            listOf(
+                TestModels.apodWithThumbnail(),
+                TestModels.apodWithThumbnail(),
+            )
         val startDate = LocalDate.of(2019, 8, 8)
         val endDate = LocalDate.of(2020, 8, 8)
         every {
@@ -59,8 +63,8 @@ class ApodControllerTest {
         val endDate = LocalDate.of(2014, 4, 10)
         val apods =
             listOf(
-                TestModels.apod(title = "a1"),
-                TestModels.apod(title = "a2"),
+                TestModels.apodWithThumbnail(TestModels.apod(title = "a1")),
+                TestModels.apodWithThumbnail(TestModels.apod(title = "a2")),
             )
         every {
             getApodsByDateRangeUseCase.execute(

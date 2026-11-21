@@ -28,5 +28,6 @@ class ApodController(
             .execute(
                 startDate = startDate,
                 endDate = endDate,
-            ).toResponse()
+            ).map { it.apod }
+            .toResponse()
 }
