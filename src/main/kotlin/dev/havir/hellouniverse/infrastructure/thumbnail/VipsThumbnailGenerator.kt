@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import tools.jackson.core.JacksonException
 import tools.jackson.databind.json.JsonMapper
+import java.io.IOException
 import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
@@ -39,6 +40,21 @@ class VipsThumbnailGenerator(
         val source = sourceResolver.resolve(apod)
         if (source == ThumbnailSource.None) return false
 
+        try {
+            write(apod, source)
+        } catch (e: IOException) {
+            throw ThumbnailException(
+                "Cannot write the thumbnail of ${apod.date}",
+                e,
+            )
+        }
+        return true
+    }
+
+    private fun write(
+        apod: Apod,
+        source: ThumbnailSource,
+    ) {
         Files.createDirectories(thumbnailDir)
         val workDir = Files.createTempDirectory("thumbnail-")
         val partial = thumbnailDir.resolve(".${apod.date}.tmp.webp")
@@ -55,7 +71,6 @@ class VipsThumbnailGenerator(
             workDir.toFile().deleteRecursively()
             Files.deleteIfExists(partial)
         }
-        return true
     }
 
     private fun prepareInput(

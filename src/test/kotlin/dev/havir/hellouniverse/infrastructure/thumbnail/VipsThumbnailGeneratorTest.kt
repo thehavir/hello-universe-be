@@ -1,6 +1,7 @@
 package dev.havir.hellouniverse.infrastructure.thumbnail
 
 import dev.havir.hellouniverse.TestModels
+import dev.havir.hellouniverse.domain.exception.ThumbnailGenerationException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -226,6 +227,17 @@ class VipsThumbnailGeneratorTest {
         assertFailsWith<ThumbnailException> { tested.generate(apod) }
 
         assertEquals("old", Files.readString(thumbnailDir.resolve("2026-11-21.webp")))
+    }
+
+    @Test
+    fun `on generate throws ThumbnailGenerationException when the thumbnail folder cannot be created`() {
+        // A file where the parent folder should be
+        Files.writeString(tempDir.resolve("media"), "not a folder")
+        givenSource(ThumbnailSource.Image(imageUrl))
+
+        assertFailsWith<ThumbnailGenerationException> { tested.generate(apod) }
+        verify(exactly = 0) { mediaFetcher.download(any(), any()) }
+        verify(exactly = 0) { commandRunner.run(any(), any()) }
     }
 
     // --- YouTube
