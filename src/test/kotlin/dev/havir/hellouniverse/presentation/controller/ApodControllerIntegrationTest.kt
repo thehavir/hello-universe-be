@@ -75,7 +75,6 @@ class ApodControllerIntegrationTest {
                 mediaType = MediaType.IMAGE,
                 url = "https://far-galaxy.com",
                 credit = "Far Observatory",
-                thumbnailUrl = null,
                 copyright = "NASA",
                 sourceUrl = "https://science.nasa.gov/far-galaxy",
             )
@@ -87,7 +86,6 @@ class ApodControllerIntegrationTest {
                 mediaType = MediaType.OTHER,
                 url = null,
                 credit = null,
-                thumbnailUrl = null,
                 copyright = null,
                 sourceUrl = null,
             )
@@ -99,7 +97,6 @@ class ApodControllerIntegrationTest {
                 mediaType = MediaType.VIDEO,
                 url = "https://exoplanet.xyz",
                 credit = "Exo Team",
-                thumbnailUrl = "https://exoplanet.xyz/thumb",
                 copyright = "FREE",
                 sourceUrl = "https://science.nasa.gov/exoplanet",
             )
@@ -142,9 +139,7 @@ class ApodControllerIntegrationTest {
                 jsonPath("$[2].media_type") { value("video") }
                 jsonPath("$[2].url") { value("https://exoplanet.xyz") }
                 jsonPath("$[2].credit") { value("Exo Team") }
-                jsonPath("$[2].thumbnail_url") {
-                    value("https://exoplanet.xyz/thumb")
-                }
+                jsonPath("$[2].thumbnail_url") { value(null) }
                 jsonPath("$[2].copyright") { value("FREE") }
                 jsonPath("$[2].source_url") { value("https://science.nasa.gov/exoplanet") }
             }

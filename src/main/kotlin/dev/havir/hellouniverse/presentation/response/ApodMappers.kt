@@ -14,7 +14,7 @@ fun Apod.toResponse(): ApodResponse =
         copyright = copyright,
         mediaType = mediaType.toResponse(),
         url = url,
-        thumbnailUrl = thumbnailUrl,
+        thumbnailUrl = null,
         sourceUrl = sourceUrl,
     )
 

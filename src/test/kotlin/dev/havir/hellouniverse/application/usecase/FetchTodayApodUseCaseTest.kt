@@ -99,7 +99,6 @@ class FetchTodayApodUseCaseTest {
                 "url.com",
                 null,
                 "thumbnail.com",
-                "public",
                 "xyz",
             )
         every { apodRepository.existsByDate(today) } returns false

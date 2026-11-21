@@ -45,7 +45,6 @@ class ApodMappersTest {
                 "url.de",
                 "hd.com",
                 null,
-                null,
                 "2",
             )
 
@@ -79,7 +78,6 @@ class ApodMappersTest {
                     null,
                     "hd.com",
                     "thumb.com",
-                    "nasa",
                     "33.vv",
                 ),
                 TestModels.apod(
@@ -89,7 +87,6 @@ class ApodMappersTest {
                     MediaType.VIDEO,
                     "url.x",
                     "hd.x",
-                    null,
                     null,
                     "25.11",
                 ),
@@ -107,7 +104,7 @@ class ApodMappersTest {
                     null,
                     "hd.com",
                     "thumb.com",
-                    "nasa",
+                    null,
                     "33.vv",
                 ),
                 TestModels.apodResponse(
