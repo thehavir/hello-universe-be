@@ -2,6 +2,7 @@ package dev.havir.hellouniverse.presentation.controller
 
 import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase
 import dev.havir.hellouniverse.presentation.response.ApodResponse
+import dev.havir.hellouniverse.presentation.response.ThumbnailUrls
 import dev.havir.hellouniverse.presentation.response.toResponse
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,6 +15,7 @@ import java.time.LocalDate
 @RequestMapping("/apods")
 class ApodController(
     private val getApodsByDateRangeUseCase: GetApodsByDateRangeUseCase,
+    private val thumbnailUrls: ThumbnailUrls,
 ) {
     @GetMapping
     fun getApods(
@@ -28,6 +30,5 @@ class ApodController(
             .execute(
                 startDate = startDate,
                 endDate = endDate,
-            ).map { it.apod }
-            .toResponse()
+            ).toResponse(thumbnailUrls)
 }

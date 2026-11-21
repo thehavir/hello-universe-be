@@ -2,11 +2,15 @@ package dev.havir.hellouniverse.presentation.response
 
 import dev.havir.hellouniverse.TestModels
 import dev.havir.hellouniverse.domain.model.MediaType
+import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class ApodMappersTest {
+    val thumbnailUrls = ThumbnailUrls("https://media.test/media")
+
     @Test
     fun `on MediaType toResponse maps MediaType to MediaTypeResponse when MediaType is VIDEO`() {
         val mediaType = MediaType.VIDEO
@@ -92,7 +96,10 @@ class ApodMappersTest {
                 ),
             )
 
-        val result = apods.toResponse()
+        val result =
+            apods
+                .map { TestModels.apodWithThumbnail(it) }
+                .toResponse(thumbnailUrls)
 
         assertEquals(
             listOf(
@@ -117,6 +124,74 @@ class ApodMappersTest {
                     null,
                     null,
                     "25.11",
+                ),
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `on ApodWithThumbnail toResponse sets thumbnail url built by ThumbnailUrls when thumbnail exists`() {
+        val date = LocalDate.of(2026, 11, 21)
+        val apodWithThumbnail =
+            TestModels.apodWithThumbnail(
+                TestModels.apod(date = date, title = "title-t"),
+                TestModels.apodThumbnail(
+                    date,
+                    Instant.parse("2026-11-21T10:15:30Z"),
+                ),
+            )
+
+        val result = apodWithThumbnail.toResponse(thumbnailUrls)
+
+        assertEquals(
+            TestModels.apodResponse(
+                date = date,
+                title = "title-t",
+                thumbnailUrl =
+                    "https://media.test/media/thumb/2026-11-21.webp?v=1795256130",
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun `on ApodWithThumbnail toResponse sets thumbnail url to null when thumbnail is null`() {
+        val apodWithThumbnail = TestModels.apodWithThumbnail(thumbnail = null)
+
+        val result = apodWithThumbnail.toResponse(thumbnailUrls)
+
+        assertNull(result.thumbnailUrl)
+    }
+
+    @Test
+    fun `on ApodWithThumbnail List toResponse maps each item and keeps the order`() {
+        val date1 = LocalDate.of(2026, 11, 20)
+        val date2 = LocalDate.of(2026, 11, 21)
+        val items =
+            listOf(
+                TestModels.apodWithThumbnail(
+                    TestModels.apod(date = date1),
+                    null,
+                ),
+                TestModels.apodWithThumbnail(
+                    TestModels.apod(date = date2),
+                    TestModels.apodThumbnail(
+                        date2,
+                        Instant.parse("2026-11-21T10:15:31Z"),
+                    ),
+                ),
+            )
+
+        val result = items.toResponse(thumbnailUrls)
+
+        assertEquals(
+            listOf(
+                TestModels.apodResponse(date = date1),
+                TestModels.apodResponse(
+                    date = date2,
+                    thumbnailUrl =
+                        "https://media.test/media/thumb/2026-11-21.webp?v=1795256131",
                 ),
             ),
             result,

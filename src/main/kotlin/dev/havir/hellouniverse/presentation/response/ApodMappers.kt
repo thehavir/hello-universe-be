@@ -1,11 +1,17 @@
 package dev.havir.hellouniverse.presentation.response
 
 import dev.havir.hellouniverse.domain.model.Apod
+import dev.havir.hellouniverse.domain.model.ApodWithThumbnail
 import dev.havir.hellouniverse.domain.model.MediaType
 
-fun List<Apod>.toResponse(): List<ApodResponse> = map { it.toResponse() }
+fun List<ApodWithThumbnail>.toResponse(
+    thumbnailUrls: ThumbnailUrls,
+): List<ApodResponse> = map { it.toResponse(thumbnailUrls) }
 
-fun Apod.toResponse(): ApodResponse =
+fun ApodWithThumbnail.toResponse(thumbnailUrls: ThumbnailUrls): ApodResponse =
+    apod.toResponse(thumbnail?.let(thumbnailUrls::of))
+
+fun Apod.toResponse(thumbnailUrl: String? = null): ApodResponse =
     ApodResponse(
         date = date,
         title = title,
@@ -14,7 +20,7 @@ fun Apod.toResponse(): ApodResponse =
         copyright = copyright,
         mediaType = mediaType.toResponse(),
         url = url,
-        thumbnailUrl = null,
+        thumbnailUrl = thumbnailUrl,
         sourceUrl = sourceUrl,
     )
 

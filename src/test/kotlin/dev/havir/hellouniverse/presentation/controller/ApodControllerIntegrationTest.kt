@@ -6,20 +6,26 @@ import dev.havir.hellouniverse.application.usecase.GetApodsByDateRangeUseCase
 import dev.havir.hellouniverse.domain.exception.DateRangeTooLargeException
 import dev.havir.hellouniverse.domain.exception.StartDateAfterEndDateException
 import dev.havir.hellouniverse.domain.model.MediaType
+import dev.havir.hellouniverse.presentation.response.ThumbnailUrls
 import io.mockk.every
 import org.hamcrest.Matchers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MockMvcResultMatchersDsl
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.Test
 import org.springframework.http.MediaType as HttpMediaType
 
 @WebMvcTest(ApodController::class)
+@Import(ThumbnailUrls::class)
+@TestPropertySource(properties = ["media.base-url=https://media.test/media"])
 class ApodControllerIntegrationTest {
     @MockkBean
     lateinit var getApodsByDateRangeUseCase: GetApodsByDateRangeUseCase
@@ -106,7 +112,18 @@ class ApodControllerIntegrationTest {
                 startDate = startDate,
                 endDate = endDate,
             )
-        } returns apods.map { TestModels.apodWithThumbnail(it) }
+        } returns
+            listOf(
+                TestModels.apodWithThumbnail(apod1),
+                TestModels.apodWithThumbnail(apod2),
+                TestModels.apodWithThumbnail(
+                    apod3,
+                    TestModels.apodThumbnail(
+                        endDate,
+                        Instant.parse("2026-11-21T10:15:30Z"),
+                    ),
+                ),
+            )
 
         mockMvc
             .get("/apods") {
@@ -139,7 +156,11 @@ class ApodControllerIntegrationTest {
                 jsonPath("$[2].media_type") { value("video") }
                 jsonPath("$[2].url") { value("https://exoplanet.xyz") }
                 jsonPath("$[2].credit") { value("Exo Team") }
-                jsonPath("$[2].thumbnail_url") { value(null) }
+                jsonPath("$[2].thumbnail_url") {
+                    value(
+                        "https://media.test/media/thumb/2020-01-03.webp?v=1795256130",
+                    )
+                }
                 jsonPath("$[2].copyright") { value("FREE") }
                 jsonPath("$[2].source_url") { value("https://science.nasa.gov/exoplanet") }
             }
