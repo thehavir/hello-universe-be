@@ -34,7 +34,10 @@ class VipsThumbnailGenerator(
     private val jsonMapper: JsonMapper,
     @Value($$"${media.thumbnail-dir}") thumbnailDir: String,
 ) : ThumbnailGenerator {
-    private val thumbnailDir: Path = Path.of(thumbnailDir)
+    // Must be an absolute path. With a relative path, vipsthumbnail saves the
+    // thumbnail in the wrong folder (next to the source picture), or, if the
+    // path starts with ".", prints it to the console and saves no file.
+    private val thumbnailDir: Path = Path.of(thumbnailDir).toAbsolutePath()
 
     override fun generate(apod: Apod): Boolean {
         val source = sourceResolver.resolve(apod)

@@ -12,17 +12,31 @@ import java.net.http.HttpResponse.BodyHandlers
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Downloads over HTTPS only, with timeouts and a size limit, so a broken or
  * huge source can't fill the disk or block the scheduler.
+ *
+ * The request timeout only covers the wait for the response headers; reading
+ * the body has no timeout of its own. So a watchdog closes the body when
+ * reading takes longer than [bodyTimeout], which makes the blocked read fail.
  */
 @Component
 class HttpMediaFetcher(
     private val httpClient: HttpClient,
+    private val bodyTimeout: Duration = BODY_TIMEOUT,
 ) : MediaFetcher {
     @Autowired
     constructor() : this(defaultHttpClient())
+
+    private val watchdog: ScheduledExecutorService =
+        Executors.newSingleThreadScheduledExecutor { task ->
+            Thread(task, "media-download-watchdog").apply { isDaemon = true }
+        }
 
     override fun download(
         url: String,
@@ -59,13 +73,41 @@ class HttpMediaFetcher(
                 )
             return response.body().use { body ->
                 checkStatus(url, response.statusCode())
-                read(body)
+                readBeforeDeadline(url, body, read)
             }
         } catch (e: IOException) {
             throw ThumbnailException("Download of $url failed", e)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
             throw ThumbnailException("Download of $url was interrupted", e)
+        }
+    }
+
+    private fun <T> readBeforeDeadline(
+        url: String,
+        body: InputStream,
+        read: (InputStream) -> T,
+    ): T {
+        val timedOut = AtomicBoolean(false)
+        val closer =
+            watchdog.schedule(
+                {
+                    timedOut.set(true)
+                    runCatching { body.close() }
+                },
+                bodyTimeout.toMillis(),
+                TimeUnit.MILLISECONDS,
+            )
+        try {
+            return read(body)
+        } catch (e: IOException) {
+            if (!timedOut.get()) throw e
+            throw ThumbnailException(
+                "Download of $url took longer than $bodyTimeout",
+                e,
+            )
+        } finally {
+            closer.cancel(false)
         }
     }
 
@@ -120,6 +162,9 @@ class HttpMediaFetcher(
     private companion object {
         const val USER_AGENT = "hello-universe-thumbnails"
         val REQUEST_TIMEOUT: Duration = Duration.ofSeconds(30)
+
+        // For the whole body: 64 MB still fits at about 1 MB/s
+        val BODY_TIMEOUT: Duration = Duration.ofSeconds(90)
         val CONNECT_TIMEOUT: Duration = Duration.ofSeconds(5)
         const val MAX_DOWNLOAD_BYTES = 64L * 1024 * 1024
         const val MAX_TEXT_BYTES = 64 * 1024

@@ -77,8 +77,8 @@ class VipsThumbnailGeneratorToolsTest {
         fetcher: LocalFetcher,
         mediaType: MediaType,
         url: String,
+        thumbnailDir: Path = tempDir.resolve("thumb"),
     ): Path {
-        val thumbnailDir = tempDir.resolve("thumb")
         val tested =
             VipsThumbnailGenerator(
                 ThumbnailSourceResolver(),
@@ -117,5 +117,20 @@ class VipsThumbnailGeneratorToolsTest {
         val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg")
 
         assertEquals(320 to 180, size(thumbnail))
+    }
+
+    @Test
+    fun `writes the webp when the thumbnail folder is a relative path starting with a dot`() {
+        // vipsthumbnail writes to stdout for a relative -o path starting with "."
+        val relative = Path.of("./target/tools-test-${System.nanoTime()}/thumb")
+        try {
+            val fetcher = LocalFetcher(greyPicture("relative", 800, 400))
+
+            val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg", relative)
+
+            assertEquals(480 to 240, size(thumbnail))
+        } finally {
+            relative.parent.toFile().deleteRecursively()
+        }
     }
 }

@@ -15,10 +15,13 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
+import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class HttpMediaFetcherTest {
     @TempDir
@@ -47,6 +50,32 @@ class HttpMediaFetcherTest {
         } returns response
     }
 
+    /** A body that sends nothing until it is closed, like a stalled server. */
+    private fun givenStalledBody() {
+        val closed = CountDownLatch(1)
+        val stalledBody =
+            object : InputStream() {
+                override fun read(): Int = read(ByteArray(1), 0, 1)
+
+                override fun read(
+                    b: ByteArray,
+                    off: Int,
+                    len: Int,
+                ): Int {
+                    closed.await()
+                    throw IOException("closed")
+                }
+
+                override fun close() = closed.countDown()
+            }
+        val response = mockk<HttpResponse<InputStream>>()
+        every { response.statusCode() } returns 200
+        every { response.body() } returns stalledBody
+        every {
+            httpClient.send(any(), any<HttpResponse.BodyHandler<InputStream>>())
+        } returns response
+    }
+
     @Test
     fun `on download saves the body to the target file`() {
         val body = ByteArray(200_000) { (it % 251).toByte() }
@@ -61,7 +90,10 @@ class HttpMediaFetcherTest {
     fun `on download sends a GET request to the url`() {
         val request = slot<HttpRequest>()
         every {
-            httpClient.send(capture(request), any<HttpResponse.BodyHandler<InputStream>>())
+            httpClient.send(
+                capture(request),
+                any<HttpResponse.BodyHandler<InputStream>>(),
+            )
         } answers {
             mockk<HttpResponse<InputStream>> {
                 every { statusCode() } returns 200
@@ -79,21 +111,32 @@ class HttpMediaFetcherTest {
     fun `on download throws SourceNotFoundException for 404`() {
         givenResponse(404, "not found".toByteArray())
 
-        assertFailsWith<SourceNotFoundException> { tested.download(url, target) }
+        assertFailsWith<SourceNotFoundException> {
+            tested.download(
+                url,
+                target,
+            )
+        }
     }
 
     @Test
     fun `on download throws SourceNotFoundException for 410`() {
         givenResponse(410, "gone".toByteArray())
 
-        assertFailsWith<SourceNotFoundException> { tested.download(url, target) }
+        assertFailsWith<SourceNotFoundException> {
+            tested.download(
+                url,
+                target,
+            )
+        }
     }
 
     @Test
     fun `on download throws ThumbnailException for a server error`() {
         givenResponse(500, "error".toByteArray())
 
-        val error = assertFailsWith<ThumbnailException> { tested.download(url, target) }
+        val error =
+            assertFailsWith<ThumbnailException> { tested.download(url, target) }
         assertEquals(ThumbnailException::class, error::class)
     }
 
@@ -162,5 +205,43 @@ class HttpMediaFetcherTest {
         assertFailsWith<ThumbnailException> {
             tested.readText("https://vimeo.com/api/oembed.json")
         }
+    }
+
+    @Test
+    fun `on download throws ThumbnailException when the body stalls longer than the body timeout`() {
+        tested = HttpMediaFetcher(httpClient, Duration.ofMillis(300))
+        givenStalledBody()
+        val start = System.nanoTime()
+
+        val error =
+            assertFailsWith<ThumbnailException> { tested.download(url, target) }
+
+        assertTrue { error.message!!.contains("took longer than") }
+        assertTrue {
+            Duration.ofNanos(System.nanoTime() - start) < Duration.ofSeconds(5)
+        }
+    }
+
+    @Test
+    fun `on readText throws ThumbnailException when the body stalls longer than the body timeout`() {
+        tested = HttpMediaFetcher(httpClient, Duration.ofMillis(300))
+        givenStalledBody()
+
+        val error =
+            assertFailsWith<ThumbnailException> {
+                tested.readText("https://vimeo.com/api/oembed.json")
+            }
+
+        assertTrue { error.message!!.contains("took longer than") }
+    }
+
+    @Test
+    fun `on download does not time out a body that is read in time`() {
+        tested = HttpMediaFetcher(httpClient, Duration.ofSeconds(5))
+        givenResponse(200, ByteArray(1000) { 7 })
+
+        tested.download(url, target)
+
+        assertEquals(1000, Files.size(target))
     }
 }
