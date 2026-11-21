@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component
  * Builds the public URL of a thumbnail file. The version in the URL changes
  * when the file is generated again, so clients that cache it for a long time
  * load the new file.
+ *
+ * The file name `<date>.webp` must match what `VipsThumbnailGenerator`
+ * (infrastructure) writes; change both together.
  */
 @Component
 class ThumbnailUrls(

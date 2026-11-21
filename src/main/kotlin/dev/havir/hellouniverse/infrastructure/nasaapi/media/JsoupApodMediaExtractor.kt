@@ -60,6 +60,9 @@ class JsoupApodMediaExtractor : ApodMediaExtractor {
     private companion object {
         const val MEDIA_SELECTOR = "img[src], video > source[src], iframe[src]"
 
+        // TODO: Move "ustream.tv" to WEB_APP_HOSTS (dead live-stream page,
+        //  2014-05-14 and 2019-06-02) and update its test and fixture.
+        //  ThumbnailSourceResolver treats every other VIDEO as a video file.
         val VIDEO_HOSTS =
             setOf(
                 "youtube.com",

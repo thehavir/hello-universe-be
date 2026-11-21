@@ -2,6 +2,13 @@
 # Only list rules that differ from the defaults.
 
 style:
+  ForbiddenComment:
+    # Allow TODO comments; keep blocking markers that must never be merged
+    comments:
+      - value: 'FIXME:'
+        reason: 'Fix it before merging.'
+      - value: 'STOPSHIP:'
+        reason: 'Must not be merged.'
   MaxLineLength:
     # Match ktfmt's maxWidth in pom.xml
     maxLineLength: 80

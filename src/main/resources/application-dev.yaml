@@ -29,3 +29,5 @@ spring:
 # value in /etc/hello-universe/runtime.yaml.
 media:
   base-url: http://localhost:8080/media
+  # Thumbnails made while running locally; ignored by git
+  thumbnail-dir: .media/thumb
