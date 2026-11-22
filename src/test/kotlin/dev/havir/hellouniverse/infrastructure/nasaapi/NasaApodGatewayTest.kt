@@ -147,7 +147,6 @@ class NasaApodGatewayTest {
                 // media type and url come from the extractor
                 mediaType = MediaType.IMAGE,
                 url = "https://apod.nasa.gov/moon.jpg",
-                thumbnailUrl = null,
                 sourceUrl = "https://science.nasa.gov/apod/earth-and-moon/",
             ),
             result,

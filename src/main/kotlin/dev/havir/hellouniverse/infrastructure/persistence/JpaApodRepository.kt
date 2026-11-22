@@ -41,7 +41,6 @@ class JpaApodRepository(
             copyright = copyright,
             mediaType = mediaType.toEntity(),
             url = url,
-            thumbnailUrl = thumbnailUrl,
             sourceUrl = sourceUrl,
         )
 
@@ -54,7 +53,6 @@ class JpaApodRepository(
             copyright = copyright,
             mediaType = mediaType.toDomain(),
             url = url,
-            thumbnailUrl = thumbnailUrl,
             sourceUrl = sourceUrl,
         )
 
