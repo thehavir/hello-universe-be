@@ -129,9 +129,9 @@ class VipsThumbnailGeneratorTest {
                     "vipsthumbnail",
                     downloadTarget.captured.toString(),
                     "--size",
-                    "480x960>",
+                    "1024x2048>",
                     "-o",
-                    "${thumbnailDir.resolve(".2026-11-21.tmp.webp")}[Q=70,keep=none]",
+                    "${thumbnailDir.resolve(".2026-11-21.tmp.webp")}[Q=75,keep=none]",
                 ),
                 any(),
             )

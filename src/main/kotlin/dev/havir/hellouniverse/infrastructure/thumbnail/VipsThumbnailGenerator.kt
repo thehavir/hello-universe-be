@@ -15,7 +15,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.time.Duration
 
 /**
- * Writes `<thumbnail-dir>/<date>.webp`, at most 480x960 and never enlarged.
+ * Writes `<thumbnail-dir>/<date>.webp`, at most 1024x2048 and never enlarged.
  * `ThumbnailUrls` (presentation) builds the public URL from the same
  * `<date>.webp` name; change both together.
  *
@@ -214,11 +214,13 @@ class VipsThumbnailGenerator(
         Files.isRegularFile(file) && Files.size(file) > 0
 
     private companion object {
-        // At most 480 wide and 960 high; ">" means only make smaller
-        const val SIZE = "480x960>"
+        // At most 1024 wide and 2048 high; ">" means only make smaller.
+        // 1024 is sharp enough for the detail screen, and the list uses the
+        // same file (Flutter decodes it smaller).
+        const val SIZE = "1024x2048>"
 
         // keep=none drops metadata such as EXIF (needs libvips 8.15+)
-        const val WEBP_OPTIONS = "Q=70,keep=none"
+        const val WEBP_OPTIONS = "Q=75,keep=none"
         const val FRAME_SECOND = 3
         val TIMEOUT: Duration = Duration.ofSeconds(60)
 
