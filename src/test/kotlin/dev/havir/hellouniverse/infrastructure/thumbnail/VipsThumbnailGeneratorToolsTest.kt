@@ -92,31 +92,31 @@ class VipsThumbnailGeneratorToolsTest {
     }
 
     @Test
-    fun `makes a 480 wide webp from a large landscape picture`() {
-        val fetcher = LocalFetcher(greyPicture("wide", 2000, 1000))
+    fun `makes a 1024 wide webp from a large landscape picture`() {
+        val fetcher = LocalFetcher(greyPicture("wide", 3000, 1500))
 
         val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg")
 
-        assertEquals(480 to 240, size(thumbnail))
+        assertEquals(1024 to 512, size(thumbnail))
         assertEquals("RIFF", String(Files.readAllBytes(thumbnail).copyOfRange(0, 4)))
     }
 
     @Test
-    fun `limits a tall picture to 960 high`() {
-        val fetcher = LocalFetcher(greyPicture("tall", 1000, 5000))
+    fun `limits a tall picture to 2048 high`() {
+        val fetcher = LocalFetcher(greyPicture("tall", 2000, 10000))
 
         val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg")
 
-        assertEquals(192 to 960, size(thumbnail))
+        assertEquals(410 to 2048, size(thumbnail))
     }
 
     @Test
     fun `does not enlarge a small picture`() {
-        val fetcher = LocalFetcher(greyPicture("small", 320, 180))
+        val fetcher = LocalFetcher(greyPicture("small", 640, 360))
 
         val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg")
 
-        assertEquals(320 to 180, size(thumbnail))
+        assertEquals(640 to 360, size(thumbnail))
     }
 
     @Test
@@ -124,11 +124,11 @@ class VipsThumbnailGeneratorToolsTest {
         // vipsthumbnail writes to stdout for a relative -o path starting with "."
         val relative = Path.of("./target/tools-test-${System.nanoTime()}/thumb")
         try {
-            val fetcher = LocalFetcher(greyPicture("relative", 800, 400))
+            val fetcher = LocalFetcher(greyPicture("relative", 3000, 1500))
 
             val thumbnail = generate(fetcher, MediaType.IMAGE, "https://x.test/a.jpg", relative)
 
-            assertEquals(480 to 240, size(thumbnail))
+            assertEquals(1024 to 512, size(thumbnail))
         } finally {
             relative.parent.toFile().deleteRecursively()
         }
