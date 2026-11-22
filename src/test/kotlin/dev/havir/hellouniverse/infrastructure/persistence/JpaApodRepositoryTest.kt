@@ -48,7 +48,6 @@ class JpaApodRepositoryTest {
                 "url.com",
                 null,
                 "thumbnail.com",
-                "public",
                 "xyz",
             )
         val apodEntity =
@@ -60,7 +59,6 @@ class JpaApodRepositoryTest {
                 "url.com",
                 null,
                 "thumbnail.com",
-                "public",
                 "xyz",
             )
         every { apodJpaRepository.save(any()) } returns apodEntity
@@ -104,7 +102,6 @@ class JpaApodRepositoryTest {
                 "url.de",
                 "hd.com",
                 null,
-                null,
                 "2",
             )
         val apodEntity =
@@ -115,7 +112,6 @@ class JpaApodRepositoryTest {
                 MediaTypeEntity.IMAGE,
                 "url.de",
                 "hd.com",
-                null,
                 null,
                 "2",
             )
@@ -183,7 +179,6 @@ class JpaApodRepositoryTest {
                     "url.com",
                     "hd.com",
                     null,
-                    "CC2",
                     "3-x",
                 ),
                 TestModels.apodEntity(
@@ -194,7 +189,6 @@ class JpaApodRepositoryTest {
                     null,
                     null,
                     null,
-                    "CC-Y",
                     "3-x",
                 ),
             )
@@ -208,7 +202,6 @@ class JpaApodRepositoryTest {
                     "url.com",
                     "hd.com",
                     null,
-                    "CC2",
                     "3-x",
                 ),
                 TestModels.apod(
@@ -219,7 +212,6 @@ class JpaApodRepositoryTest {
                     null,
                     null,
                     null,
-                    "CC-Y",
                     "3-x",
                 ),
             )

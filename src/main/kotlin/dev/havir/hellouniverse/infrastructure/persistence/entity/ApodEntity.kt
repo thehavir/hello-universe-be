@@ -27,8 +27,6 @@ class ApodEntity(
     var mediaType: MediaTypeEntity,
     @Column(columnDefinition = "TEXT", nullable = true)
     var url: String?,
-    @Column(name = "thumbnail_url", columnDefinition = "TEXT", nullable = true)
-    var thumbnailUrl: String?,
     @Column(name = "source_url", columnDefinition = "TEXT", nullable = true)
     var sourceUrl: String?,
 )

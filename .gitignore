@@ -40,3 +40,6 @@ docs/
 
 ### Python ###
 __pycache__/
+
+### Local thumbnails (media.thumbnail-dir in the dev profile) ###
+.media/
