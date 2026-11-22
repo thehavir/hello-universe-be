@@ -61,8 +61,6 @@ class NasaApodGateway(
             copyright = copyright?.let { sanitizeHtml(it, permalink) },
             mediaType = media.type,
             url = media.url,
-            // Todo: calculate the correct value
-            thumbnailUrl = null,
             sourceUrl = permalink,
         )
 

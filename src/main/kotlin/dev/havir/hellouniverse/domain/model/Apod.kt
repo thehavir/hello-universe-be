@@ -10,6 +10,5 @@ data class Apod(
     val copyright: String?,
     val mediaType: MediaType,
     val url: String?,
-    val thumbnailUrl: String?,
     val sourceUrl: String?,
 )
