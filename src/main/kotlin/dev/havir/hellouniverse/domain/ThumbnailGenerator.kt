@@ -3,7 +3,7 @@ package dev.havir.hellouniverse.domain
 import dev.havir.hellouniverse.domain.exception.ThumbnailGenerationException
 import dev.havir.hellouniverse.domain.model.Apod
 
-/** Makes our own small WebP thumbnail file for one APOD. */
+/** Makes a small WebP thumbnail file for one APOD. */
 interface ThumbnailGenerator {
     /**
      * @return true when the file was written, false when the APOD has no

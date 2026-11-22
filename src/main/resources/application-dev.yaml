@@ -25,6 +25,14 @@ spring:
   flyway:
     enabled: false
 
+  # Serve the generated thumbnails at media.base-url, like nginx does in
+  # production. The path is relative to the folder the app is started from.
+  mvc:
+    static-path-pattern: /media/**
+  web:
+    resources:
+      static-locations: file:.media/
+
 # Public address of the media folder (thumbnails). Production sets its own
 # value in /etc/hello-universe/runtime.yaml.
 media:

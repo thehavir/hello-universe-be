@@ -52,11 +52,7 @@ class FetchTodayApodUseCase(
                 logger.info("Saved thumbnail for {}", apod.date)
             }
         } catch (e: ThumbnailGenerationException) {
-            logger.warn(
-                "Thumbnail for {} failed",
-                apod.date,
-                e,
-            )
+            logger.warn("Thumbnail for {} failed", apod.date, e)
         }
     }
 }

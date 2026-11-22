@@ -60,7 +60,6 @@ def main():
             process = subprocess.Popen([
                 str(executable), "--server.address=127.0.0.1", "--server.port=18080",
                 f"--nasa.api.base-url={NASA_MOCK_URL}", "--scheduler.fetch-apod.cron=*/3 * * * * *",
-                # Production gets these from runtime.yaml, which CI does not load
                 f"--media.base-url={APP_URL}/media",
                 f"--media.thumbnail-dir={log_path.parent.resolve() / 'smoke-test-thumbnails'}",
             ], cwd=executable.parent, stdout=log, stderr=subprocess.STDOUT)
