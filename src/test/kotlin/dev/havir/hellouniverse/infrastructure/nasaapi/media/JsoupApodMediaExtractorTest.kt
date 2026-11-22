@@ -99,14 +99,28 @@ class JsoupApodMediaExtractorTest {
     }
 
     @Test
-    fun `on extract returns Ustream iframe as video`() {
+    fun `on extract returns Ustream iframe as web app`() {
         assertEquals(
             ApodMedia(
-                MediaType.VIDEO,
+                MediaType.WEB_APP,
                 "https://www.ustream.tv/embed/17074538?v=3&wmode=direct" +
                     "&autoplay=true",
             ),
             extract("2019-06-02"),
+        )
+    }
+
+    @Test
+    fun `on extract returns YouTube nocookie iframe as video`() {
+        assertEquals(
+            ApodMedia(
+                MediaType.VIDEO,
+                "https://www.youtube-nocookie.com/embed/M6-iC_aYcug",
+            ),
+            tested.extract(
+                "<iframe src='https://www.youtube-nocookie.com/embed/M6-iC_aYcug'>" +
+                    "</iframe>",
+            ),
         )
     }
 
